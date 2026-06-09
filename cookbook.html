@@ -164,6 +164,66 @@
   .empty { text-align:center; padding:4rem 1rem; color:var(--muted); display:none; }
   .empty h3 { font-size:1.2rem; margin-bottom:.5rem; }
 
+  /* ── VIEW TOGGLE ── */
+  .view-toggle {
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:.5rem;
+    padding:.55rem 1rem; background:var(--bg);
+    border-bottom:1px solid var(--border);
+  }
+  .view-toggle-left { display:flex; gap:.5rem; }
+  .view-toggle-right { display:flex; align-items:center; gap:.5rem; }
+  .view-toggle-right label { font-size:.8rem; color:var(--muted); white-space:nowrap; }
+  .sort-select {
+    border:1.5px solid var(--border); background:var(--card-bg); color:var(--brown);
+    padding:.28rem .7rem; border-radius:2rem; font-size:.82rem;
+    font-family:inherit; cursor:pointer; outline:none; transition:border-color .2s;
+  }
+  .sort-select:focus { border-color:var(--accent); }
+  .view-btn {
+    cursor:pointer; border:1.5px solid var(--border); background:var(--card-bg);
+    color:var(--brown); padding:.3rem 1rem; border-radius:2rem;
+    font-size:.82rem; font-family:inherit; transition:all .2s;
+  }
+  .view-btn.active { background:var(--pill-act); color:#fff; border-color:var(--pill-act); }
+
+  /* ── GALLERY ── */
+  #gallery-view {
+    display:none; max-width:1100px; margin:0 auto; padding:1.2rem 1rem 4rem;
+  }
+  .gallery-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(175px,1fr));
+    gap:1rem;
+  }
+  .gallery-item {
+    background:var(--card-bg); border:1px solid var(--border);
+    border-radius:10px; overflow:hidden; cursor:pointer;
+    transition:transform .2s, box-shadow .2s, border-color .2s;
+    box-shadow:var(--shadow);
+  }
+  .gallery-item:hover {
+    transform:translateY(-3px);
+    box-shadow:0 6px 22px rgba(0,0,0,.14);
+    border-color:var(--accent);
+  }
+  .gallery-item img { width:100%; height:155px; object-fit:cover; display:block; }
+  .gallery-caption {
+    display:block; padding:.45rem .7rem .15rem;
+    font-size:.78rem; font-weight:700; color:var(--brown);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .gallery-cat {
+    display:block; padding:0 .7rem .45rem;
+    font-size:.68rem; color:var(--muted); font-family:sans-serif;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .gallery-empty { grid-column:1/-1; text-align:center; padding:3rem 1rem; color:var(--muted); }
+  @media(max-width:600px) {
+    .gallery-grid { grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:.7rem; }
+    .gallery-item img { height:120px; }
+  }
+
   /* ── BACK TO TOP ── */
   #top-btn {
     position:fixed; bottom:1.5rem; right:1.5rem; background:var(--brown);
@@ -251,6 +311,22 @@
 </nav>
 
 <div class="stats-bar" id="stats">Mostrando 103 receitas</div>
+
+<div class="view-toggle">
+  <div class="view-toggle-left">
+    <button id="btn-list" class="view-btn active" onclick="setView('list')">≡ Receitas</button>
+    <button id="btn-gallery" class="view-btn" onclick="setView('gallery')">⊞ Galeria de Fotos</button>
+  </div>
+  <div class="view-toggle-right">
+    <label for="sort-select">Ordenar:</label>
+    <select id="sort-select" class="sort-select" onchange="setSort(this.value)">
+      <option value="default">Padrão</option>
+      <option value="name-asc" selected>Nome A → Z</option>
+      <option value="name-desc">Nome Z → A</option>
+      <option value="type">Tipo</option>
+    </select>
+  </div>
+</div>
 
 <main>
 <div id="recipe-list">
@@ -416,7 +492,7 @@
 <article class="card" data-cat="indice" id="card-4">
   <div class="card-header" onclick="toggleCard(4)">
     <div class="card-title-row">
-      <h3 class="card-name">Bolo de Banana (Buca de Banana — Batedeira)</h3>
+      <h3 class="card-name">Cuca de Banana (Batedeira)</h3>
       <span class="cat-badge">Indice</span>
     </div>
     <span class="chevron" id="chev-4">▼</span>
@@ -449,10 +525,10 @@
 <p>---</p>
     </div>
     <div class="card-actions">
-      <span class="no-photo">Sem foto</span>
+      <button class="btn-photo" onclick="togglePhotos(4)">📸 Ver Foto (1)</button>
     </div>
     <div class="photo-strip" id="photos-4" style="display:none">
-      
+      <div class="thumbs"><img src="assets/original_recipes/cuca-de-banana.jpg" class="thumb" alt="Cuca de Banana" onclick="openModal('assets/original_recipes/cuca-de-banana.jpg','Cuca de Banana')" /></div>
     </div>
   </div>
 </article>
@@ -1322,10 +1398,10 @@
 <p>---</p>
     </div>
     <div class="card-actions">
-      <button class="btn-photo" onclick="togglePhotos(26)">📸 Ver Foto (2)</button>
+      <button class="btn-photo" onclick="togglePhotos(26)">📸 Ver Foto (1)</button>
     </div>
     <div class="photo-strip" id="photos-26" style="display:none">
-      <div class="thumbs"><img src="assets/original_recipes/bombocado-de-fuba.jpg" class="thumb" alt="Bombocado de Fuba" onclick="openModal('assets/original_recipes/bombocado-de-fuba.jpg','Bombocado de Fuba')" /><img src="assets/original_recipes/bombocado-de-fuba-2.jpg" class="thumb" alt="Bombocado de Fuba" onclick="openModal('assets/original_recipes/bombocado-de-fuba-2.jpg','Bombocado de Fuba')" /></div>
+      <div class="thumbs"><img src="assets/original_recipes/bombocado-de-fuba-2.jpg" class="thumb" alt="Bombocado de Fuba" onclick="openModal('assets/original_recipes/bombocado-de-fuba-2.jpg','Bombocado de Fuba')" /></div>
     </div>
   </div>
 </article>
@@ -1443,7 +1519,7 @@
       <button class="btn-photo" onclick="togglePhotos(29)">📸 Ver Foto (2)</button>
     </div>
     <div class="photo-strip" id="photos-29" style="display:none">
-      <div class="thumbs"><img src="assets/original_recipes/donuts-torta-de-banana.jpg" class="thumb" alt="Torta de Banana" onclick="openModal('assets/original_recipes/donuts-torta-de-banana.jpg','Torta de Banana')" /><img src="assets/original_recipes/torta-de-banana.jpg" class="thumb" alt="Torta de Banana" onclick="openModal('assets/original_recipes/torta-de-banana.jpg','Torta de Banana')" /></div>
+      <div class="thumbs"><img src="assets/original_recipes/donuts-torta-de-banana.jpg" class="thumb" alt="Torta de Banana" onclick="openModal('assets/original_recipes/donuts-torta-de-banana.jpg','Torta de Banana')" /><img src="assets/original_recipes/cuca-de-banana.jpg" class="thumb" alt="Torta de Banana" onclick="openModal('assets/original_recipes/cuca-de-banana.jpg','Torta de Banana')" /></div>
     </div>
   </div>
 </article>
@@ -2215,10 +2291,10 @@
 <p>---</p>
     </div>
     <div class="card-actions">
-      <span class="no-photo">Sem foto</span>
+      <button class="btn-photo" onclick="togglePhotos(50)">📸 Ver Foto (1)</button>
     </div>
     <div class="photo-strip" id="photos-50" style="display:none">
-      
+      <div class="thumbs"><img src="assets/original_recipes/casquinhas-amendoim-doce.jpg" class="thumb" alt="Casquinhas — Amendoim Doce" onclick="openModal('assets/original_recipes/casquinhas-amendoim-doce.jpg','Casquinhas — Amendoim Doce')" /></div>
     </div>
   </div>
 </article>
@@ -3057,10 +3133,10 @@
 <p>## Saladas e Acompanhamentos</p>
     </div>
     <div class="card-actions">
-      <span class="no-photo">Sem foto</span>
+      <button class="btn-photo" onclick="togglePhotos(72)">📸 Ver Foto (1)</button>
     </div>
     <div class="photo-strip" id="photos-72" style="display:none">
-      
+      <div class="thumbs"><img src="assets/original_recipes/empada-e-tortas-salgadas.jpg" class="thumb" alt="Massa para Empada e Tortas Salgadas" onclick="openModal('assets/original_recipes/empada-e-tortas-salgadas.jpg','Massa para Empada e Tortas Salgadas')" /></div>
     </div>
   </div>
 </article>
@@ -3130,10 +3206,10 @@
 <p>---</p>
     </div>
     <div class="card-actions">
-      <span class="no-photo">Sem foto</span>
+      <button class="btn-photo" onclick="togglePhotos(74)">📸 Ver Foto (1)</button>
     </div>
     <div class="photo-strip" id="photos-74" style="display:none">
-      
+      <div class="thumbs"><img src="assets/original_recipes/berinjela-para-comer-com-pao.jpg" class="thumb" alt="Berinjela para Comer com Pão" onclick="openModal('assets/original_recipes/berinjela-para-comer-com-pao.jpg','Berinjela para Comer com Pão')" /></div>
     </div>
   </div>
 </article>
@@ -3167,10 +3243,9 @@
 <p>---</p>
     </div>
     <div class="card-actions">
-      <button class="btn-photo" onclick="togglePhotos(75)">📸 Ver Foto (1)</button>
+      <span class="no-photo">Sem foto</span>
     </div>
     <div class="photo-strip" id="photos-75" style="display:none">
-      <div class="thumbs"><img src="assets/original_recipes/berinjela-recheada.jpg" class="thumb" alt="Berinjela Recheada" onclick="openModal('assets/original_recipes/berinjela-recheada.jpg','Berinjela Recheada')" /></div>
     </div>
   </div>
 </article>
@@ -3444,10 +3519,10 @@
 <p>---</p>
     </div>
     <div class="card-actions">
-      <span class="no-photo">Sem foto</span>
+      <button class="btn-photo" onclick="togglePhotos(83)">📸 Ver Foto (1)</button>
     </div>
     <div class="photo-strip" id="photos-83" style="display:none">
-      
+      <div class="thumbs"><img src="assets/original_recipes/bolo-regina-barroso.jpg" class="thumb" alt="Baba de Moça" onclick="openModal('assets/original_recipes/bolo-regina-barroso.jpg','Baba de Moça')" /></div>
     </div>
   </div>
 </article>
@@ -3840,10 +3915,10 @@
 <p>---</p>
     </div>
     <div class="card-actions">
-      <span class="no-photo">Sem foto</span>
+      <button class="btn-photo" onclick="togglePhotos(94)">📸 Ver Foto (3)</button>
     </div>
     <div class="photo-strip" id="photos-94" style="display:none">
-      
+      <div class="thumbs"><img src="assets/original_recipes/bolinho-de-polvilho-e-fuba-ingredientes.jpg" class="thumb" alt="Bolinho de Polvilho e Fubá — Ingredientes" onclick="openModal('assets/original_recipes/bolinho-de-polvilho-e-fuba-ingredientes.jpg','Bolinho de Polvilho e Fubá — Ingredientes')" /><img src="assets/original_recipes/bolinho-de-polvilho-e-fuba.jpg" class="thumb" alt="Bolinho de Polvilho e Fubá — Modo de Fritar" onclick="openModal('assets/original_recipes/bolinho-de-polvilho-e-fuba.jpg','Bolinho de Polvilho e Fubá — Modo de Fritar')" /><img src="assets/original_recipes/casquinhas-amendoim-doce.jpg" class="thumb" alt="Bolinho de Polvilho e Fubá — Enroladinhos Esfarelados" onclick="openModal('assets/original_recipes/casquinhas-amendoim-doce.jpg','Bolinho de Polvilho e Fubá — Enroladinhos Esfarelados')" /></div>
     </div>
   </div>
 </article>
@@ -4142,6 +4217,10 @@
 </div>
 </main>
 
+<div id="gallery-view">
+  <div class="gallery-grid" id="gallery-grid"></div>
+</div>
+
 <!-- Modal -->
 <div class="modal" id="modal" onclick="closeModal(event)">
   <div class="modal-box">
@@ -4160,6 +4239,9 @@
 <script>
 let currentCat = 'all';
 let currentSearch = '';
+let currentView = 'list';
+let currentSort = 'name-asc';
+let originalOrder = null;
 
 function allCards() {
   return document.querySelectorAll('.card');
@@ -4181,6 +4263,69 @@ function applyFilters() {
     card.classList.toggle('hidden', !(catMatch && searchMatch));
   });
   updateStats();
+  if (currentView === 'gallery') buildGallery();
+}
+
+function setSort(val) {
+  currentSort = val;
+  sortCards();
+  if (currentView === 'gallery') buildGallery();
+}
+
+function sortCards() {
+  const list = document.getElementById('recipe-list');
+  const cards = Array.from(list.querySelectorAll('.card'));
+  if (!originalOrder) originalOrder = cards.map(c => c.id);
+
+  if (currentSort === 'default') {
+    originalOrder.forEach(id => list.appendChild(document.getElementById(id)));
+    return;
+  }
+
+  cards.sort((a, b) => {
+    const na = a.querySelector('.card-name').textContent.trim();
+    const nb = b.querySelector('.card-name').textContent.trim();
+    if (currentSort === 'name-asc')  return na.localeCompare(nb, 'pt-BR');
+    if (currentSort === 'name-desc') return nb.localeCompare(na, 'pt-BR');
+    if (currentSort === 'type') {
+      const diff = a.dataset.cat.localeCompare(b.dataset.cat, 'pt-BR');
+      return diff !== 0 ? diff : na.localeCompare(nb, 'pt-BR');
+    }
+  });
+  cards.forEach(c => list.appendChild(c));
+}
+
+function setView(view) {
+  currentView = view;
+  const isGallery = view === 'gallery';
+  document.getElementById('recipe-list').style.display = isGallery ? 'none' : '';
+  document.getElementById('gallery-view').style.display  = isGallery ? 'block' : 'none';
+  document.getElementById('btn-list').classList.toggle('active', !isGallery);
+  document.getElementById('btn-gallery').classList.toggle('active', isGallery);
+  if (isGallery) buildGallery();
+}
+
+function buildGallery() {
+  const grid = document.getElementById('gallery-grid');
+  grid.innerHTML = '';
+  document.querySelectorAll('.card:not(.hidden)').forEach(card => {
+    const thumbs = card.querySelectorAll('.thumb');
+    if (!thumbs.length) return;
+    const name  = card.querySelector('.card-name').textContent;
+    const badge = card.querySelector('.cat-badge').textContent;
+    thumbs.forEach(img => {
+      const item = document.createElement('div');
+      item.className = 'gallery-item';
+      item.innerHTML =
+        `<img src="${img.getAttribute('src')}" alt="${img.alt}" loading="lazy">` +
+        `<span class="gallery-caption">${name}</span>` +
+        `<span class="gallery-cat">${badge}</span>`;
+      item.addEventListener('click', () => openModal(img.getAttribute('src'), name));
+      grid.appendChild(item);
+    });
+  });
+  if (!grid.children.length)
+    grid.innerHTML = '<p class="gallery-empty">Nenhuma foto disponível nesta seleção.</p>';
 }
 
 function filterCat(btn, cat) {
@@ -4266,6 +4411,7 @@ if (sessionStorage.getItem('auth') !== '1') {
 }
 
 updateStats();
+sortCards();
 </script>
 </body>
 </html>
