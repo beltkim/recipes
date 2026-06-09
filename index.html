@@ -254,6 +254,24 @@
             display: none;
         }
 
+        .cookbook-link {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 8px 20px;
+            background: var(--terracotta);
+            color: white;
+            border-radius: 20px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: background 0.2s ease;
+        }
+
+        .cookbook-link:hover {
+            background: var(--terracotta-light);
+        }
+
         @keyframes fadeDown {
             from { opacity: 0; transform: translateY(-12px); }
             to { opacity: 1; transform: translateY(0); }
@@ -277,6 +295,7 @@
 <header>
     <h1>Meu Planejamento</h1>
     <p>Acompanhe suas refeições da semana</p>
+    <a href="cookbook.html" class="cookbook-link">📖 Livro de Receitas</a>
 </header>
 
 <div class="week-strip">
