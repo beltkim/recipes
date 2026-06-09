@@ -1,0 +1,4271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Livro de Receitas da Família</title>
+<style>
+  :root {
+    --bg:       #fdf6ec;
+    --card-bg:  #fffdf8;
+    --border:   #e8d9c3;
+    --brown:    #7b4a1e;
+    --brown2:   #a0622a;
+    --text:     #3d2b1f;
+    --muted:    #8a7060;
+    --accent:   #c0762e;
+    --green:    #4a7c59;
+    --note-bg:  #fff8ec;
+    --pill-act: #7b4a1e;
+    --shadow:   0 2px 12px rgba(0,0,0,.08);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Georgia',serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #5c3010 0%, #8b4513 60%, #a0622a 100%);
+    color:#fff; text-align:center; padding:2.5rem 1rem 2rem;
+    border-bottom:4px solid #c0762e;
+  }
+  header h1 { font-size:clamp(1.6rem,4vw,2.8rem); letter-spacing:.04em; margin-bottom:.4rem; }
+  header p  { font-size:.95rem; opacity:.85; font-style:italic; }
+
+  /* ── SEARCH ── */
+  .search-wrap { max-width:560px; margin:1.5rem auto 0; position:relative; }
+  .search-wrap input {
+    width:100%; padding:.75rem 1rem .75rem 2.8rem;
+    border:none; border-radius:2rem; font-size:1rem;
+    background:rgba(255,255,255,.15); color:#fff;
+    outline:none; backdrop-filter:blur(4px);
+    border:1.5px solid rgba(255,255,255,.3);
+  }
+  .search-wrap input::placeholder { color:rgba(255,255,255,.65); }
+  .search-wrap::before { content:"🔍"; position:absolute; left:.9rem; top:50%; transform:translateY(-50%); font-size:1rem; }
+
+  /* ── PILLS ── */
+  .pills { display:flex; flex-wrap:wrap; gap:.5rem; padding:1.2rem 1rem; justify-content:center;
+            background:#fff; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10;
+            box-shadow:0 2px 8px rgba(0,0,0,.06); }
+  .pill {
+    cursor:pointer; border:1.5px solid var(--border); background:var(--card-bg);
+    color:var(--brown); padding:.35rem .9rem; border-radius:2rem; font-size:.82rem;
+    transition:all .2s; white-space:nowrap;
+  }
+  .pill:hover, .pill.active { background:var(--pill-act); color:#fff; border-color:var(--pill-act); }
+
+  /* ── STATS BAR ── */
+  .stats-bar { text-align:center; padding:.6rem 1rem; font-size:.82rem; color:var(--muted); background:var(--bg); }
+
+  /* ── MAIN ── */
+  main { max-width:860px; margin:0 auto; padding:1.2rem 1rem 4rem; }
+
+  /* ── CARD ── */
+  .card {
+    background:var(--card-bg); border:1px solid var(--border);
+    border-radius:12px; margin-bottom:1rem; overflow:hidden;
+    box-shadow:var(--shadow); transition:box-shadow .2s;
+  }
+  .card:hover { box-shadow:0 4px 20px rgba(0,0,0,.12); }
+  .card.hidden { display:none; }
+
+  .card-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:.9rem 1.2rem; cursor:pointer; user-select:none;
+    background:linear-gradient(90deg,#fffdf8,#fdf0e0);
+    border-bottom:1px solid transparent; transition:background .2s;
+  }
+  .card-header:hover { background:linear-gradient(90deg,#fef5e7,#fde8c8); }
+  .card.open .card-header { border-bottom-color:var(--border); }
+
+  .card-title-row { display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; flex:1; }
+  .card-name { font-size:1.05rem; color:var(--brown); font-weight:700; }
+  .cat-badge {
+    font-size:.72rem; padding:.2rem .6rem; border-radius:1rem;
+    background:#f3e8d8; color:var(--brown2); font-family:sans-serif; white-space:nowrap;
+  }
+  .chevron { color:var(--muted); font-size:.85rem; transition:transform .25s; flex-shrink:0; }
+  .card.open .chevron { transform:rotate(180deg); }
+
+  /* ── CARD BODY ── */
+  .card-body { padding:1.2rem 1.4rem 1rem; }
+  .recipe-content { line-height:1.7; }
+  .recipe-content p { margin-bottom:.6rem; }
+  .recipe-content p.subtitle { color:var(--muted); font-style:italic; margin-bottom:.8rem; font-size:.9rem; }
+  .recipe-content strong { color:var(--brown); }
+  .recipe-content ul { list-style:none; padding:0; margin:.2rem 0 .8rem; }
+  .recipe-content ul li {
+    padding:.25rem 0 .25rem 1.4rem; position:relative; font-size:.93rem;
+    border-bottom:1px dashed #edddc8;
+  }
+  .recipe-content ul li:last-child { border-bottom:none; }
+  .recipe-content ul li::before { content:"•"; color:var(--accent); position:absolute; left:.3rem; }
+  .recipe-content li.step {
+    list-style:none; display:flex; gap:.7rem; align-items:flex-start;
+    padding:.4rem 0; border-bottom:1px solid #f0e8d8; font-size:.93rem;
+  }
+  .recipe-content li.step:last-child { border-bottom:none; }
+  .step-num {
+    min-width:1.6rem; height:1.6rem; border-radius:50%;
+    background:var(--brown); color:#fff; font-size:.75rem;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:bold; flex-shrink:0; margin-top:.1rem;
+  }
+  p.note {
+    background:var(--note-bg); border-left:3px solid var(--accent);
+    padding:.5rem .8rem; border-radius:4px; font-size:.88rem;
+    color:var(--muted); margin:.8rem 0 .4rem; font-style:italic;
+  }
+
+  /* ── ACTIONS ── */
+  .card-actions { margin-top:1rem; display:flex; gap:.6rem; flex-wrap:wrap; }
+  .btn-photo {
+    cursor:pointer; background:var(--brown); color:#fff;
+    border:none; padding:.45rem 1rem; border-radius:2rem;
+    font-size:.88rem; transition:background .2s;
+  }
+  .btn-photo:hover { background:var(--accent); }
+  .no-photo { font-size:.82rem; color:var(--muted); padding:.45rem 0; display:inline-block; }
+
+  /* ── PHOTO STRIP ── */
+  .photo-strip { margin-top:.9rem; border-top:1px solid var(--border); padding-top:.9rem; }
+  .thumbs { display:flex; flex-wrap:wrap; gap:.6rem; }
+  .thumb {
+    width:130px; height:100px; object-fit:cover; border-radius:8px;
+    cursor:pointer; border:2px solid var(--border); transition:all .2s;
+  }
+  .thumb:hover { border-color:var(--accent); transform:scale(1.04); }
+
+  /* ── MODAL ── */
+  .modal {
+    position:fixed; inset:0; background:rgba(0,0,0,.82);
+    display:flex; align-items:center; justify-content:center;
+    z-index:1000; padding:1rem; opacity:0; pointer-events:none; transition:opacity .25s;
+  }
+  .modal.show { opacity:1; pointer-events:all; }
+  .modal-box {
+    background:#fff; border-radius:12px; max-width:90vw; max-height:90vh;
+    overflow:hidden; display:flex; flex-direction:column; box-shadow:0 8px 40px rgba(0,0,0,.5);
+  }
+  .modal-top {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:.7rem 1rem; border-bottom:1px solid #eee;
+  }
+  .modal-top h4 { font-size:1rem; color:var(--brown); }
+  .modal-close {
+    background:none; border:none; font-size:1.5rem; cursor:pointer;
+    color:var(--muted); line-height:1; padding:.1rem .4rem;
+  }
+  .modal-close:hover { color:var(--brown); }
+  .modal-img-wrap { overflow:auto; display:flex; align-items:center; justify-content:center; padding:.5rem; }
+  .modal-img-wrap img { max-width:100%; max-height:75vh; border-radius:6px; display:block; }
+
+  /* ── EMPTY STATE ── */
+  .empty { text-align:center; padding:4rem 1rem; color:var(--muted); display:none; }
+  .empty h3 { font-size:1.2rem; margin-bottom:.5rem; }
+
+  /* ── BACK TO TOP ── */
+  #top-btn {
+    position:fixed; bottom:1.5rem; right:1.5rem; background:var(--brown);
+    color:#fff; border:none; width:42px; height:42px; border-radius:50%;
+    font-size:1.2rem; cursor:pointer; opacity:0; transition:opacity .3s;
+    box-shadow:0 3px 10px rgba(0,0,0,.3);
+  }
+  #top-btn.show { opacity:1; }
+
+  @media(max-width:600px) {
+    .card-header { padding:.75rem 1rem; }
+    .card-body { padding:1rem; }
+    .thumb { width:100px; height:78px; }
+    header h1 { font-size:1.4rem; }
+  }
+
+  /* ── LOGIN OVERLAY ── */
+  #login-overlay {
+    position:fixed; inset:0; z-index:9999;
+    background: linear-gradient(135deg, #3d1a06 0%, #7b4a1e 60%, #a0622a 100%);
+    display:flex; align-items:center; justify-content:center;
+    padding:1.5rem;
+  }
+  #login-overlay.hidden { display:none; }
+  .login-box {
+    background:#fffdf8; border-radius:16px; padding:2.5rem 2rem 2rem;
+    max-width:360px; width:100%; text-align:center;
+    box-shadow:0 12px 48px rgba(0,0,0,.4);
+  }
+  .login-box .lock { font-size:2.8rem; margin-bottom:.6rem; }
+  .login-box h2 { color:var(--brown); font-size:1.4rem; margin-bottom:.3rem; }
+  .login-box p  { color:var(--muted); font-size:.88rem; margin-bottom:1.4rem; }
+  .login-box input {
+    width:100%; padding:.75rem 1rem; border:1.5px solid var(--border);
+    border-radius:8px; font-size:1rem; color:var(--text);
+    background:#fdf6ec; outline:none; margin-bottom:.3rem;
+    transition:border-color .2s;
+  }
+  .login-box input:focus { border-color:var(--accent); }
+  .login-error { color:#c0392b; font-size:.82rem; min-height:1.1rem; margin-bottom:.7rem; }
+  .login-box button {
+    width:100%; padding:.8rem; background:var(--brown); color:#fff;
+    border:none; border-radius:8px; font-size:1rem; cursor:pointer;
+    transition:background .2s; font-family:inherit;
+  }
+  .login-box button:hover { background:var(--accent); }
+  .login-box button:active { transform:scale(.98); }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN OVERLAY ── -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="lock">🔒</div>
+    <h2>Livro de Receitas</h2>
+    <p>Digite a senha para acessar o livro da família</p>
+    <input type="password" id="pw-input" placeholder="Senha" autocomplete="current-password"
+           onkeydown="if(event.key==='Enter') tryLogin()">
+    <div class="login-error" id="pw-error"></div>
+    <button onclick="tryLogin()">Entrar</button>
+  </div>
+</div>
+
+<header>
+  <h1>📖 Livro de Receitas da Família</h1>
+  <p>Uma coleção de receitas reunidas com carinho, transmitidas de geração em geração</p>
+  <div class="search-wrap">
+    <input type="text" id="search" placeholder="Buscar receita..." oninput="filterSearch(this.value)" autocomplete="off">
+  </div>
+</header>
+
+<nav class="pills" id="pills">
+<button class="pill active" data-cat="all" onclick="filterCat(this,'all')">Todas (103)</button>
+<button class="pill" data-cat="indice" onclick="filterCat(this,'indice')">Indice (30)</button>
+<button class="pill" data-cat="paes-e-massas-doces" onclick="filterCat(this,'paes-e-massas-doces')">Paes e Massas Doces (12)</button>
+<button class="pill" data-cat="sobremesas-e-doces" onclick="filterCat(this,'sobremesas-e-doces')">🍮 Sobremesas e Doces (21)</button>
+<button class="pill" data-cat="pratos-principais" onclick="filterCat(this,'pratos-principais')">🍖 Pratos Principais (5)</button>
+<button class="pill" data-cat="massas-e-pizzas" onclick="filterCat(this,'massas-e-pizzas')">🍕 Massas e Pizzas (4)</button>
+<button class="pill" data-cat="saladas-e-acompanhamentos" onclick="filterCat(this,'saladas-e-acompanhamentos')">🥗 Saladas e Acompanhamentos (10)</button>
+<button class="pill" data-cat="molhos-e-pastas" onclick="filterCat(this,'molhos-e-pastas')">🫙 Molhos e Pastas (7)</button>
+<button class="pill" data-cat="lanches-e-sanduiches" onclick="filterCat(this,'lanches-e-sanduiches')">🥪 Lanches e Sanduíches (12)</button>
+<button class="pill" data-cat="bebidas" onclick="filterCat(this,'bebidas')">🥤 Bebidas (2)</button>
+
+</nav>
+
+<div class="stats-bar" id="stats">Mostrando 103 receitas</div>
+
+<main>
+<div id="recipe-list">
+
+<article class="card" data-cat="indice" id="card-0">
+  <div class="card-header" onclick="toggleCard(0)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolos de Arroz</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-0">▼</span>
+  </div>
+  <div class="card-body" id="body-0" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>100 g de manteiga</li>
+<li>250 g de acucar</li>
+<li>4 ovos</li>
+<li>2 gemas</li>
+<li>Raspa de limao ou laranja</li>
+<li>200 g de farinha de trigo</li>
+<li>150 g de farinha de arroz</li>
+<li>100 ml de leite</li>
+<li>1 colher de cha de fermento em po</li>
+<li>Acucar em po quanto baste</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar a manteiga com o acucar.</li>
+<li class="step"><span class="step-num">2</span>Depois de bem batido, adicionar os ovos ja batidos a parte, assim como as 2 gemas.</li>
+<li class="step"><span class="step-num">3</span>Em seguida misturar as farinhas ja juntas com o fermento em po.</li>
+<li class="step"><span class="step-num">4</span>Por fim envolver as claras ja batidas em castelo.</li>
+<li class="step"><span class="step-num">5</span>Preaquecer o forno a 180°C.</li>
+<li class="step"><span class="step-num">6</span>Forrar forminhas ou aros de inox com tiras de papel e bases de papel.</li>
+<li class="step"><span class="step-num">7</span>Dispor as forminhas num tabuleiro e levar ao forno.</li>
+<li class="step"><span class="step-num">8</span>Logo que prontos, retirar e polvilhar com acucar em po e canela a gosto.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(0)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-0" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolos-de-arroz.jpg" class="thumb" alt="Bolos de Arroz" onclick="openModal('assets/original_recipes/bolos-de-arroz.jpg','Bolos de Arroz')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-1">
+  <div class="card-header" onclick="toggleCard(1)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo de 150 Gramas</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-1">▼</span>
+  </div>
+  <div class="card-body" id="body-1" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>150 g de acucar</li>
+<li>150 g de manteiga</li>
+<li>3 ovos</li>
+<li>150 g de farinha de trigo</li>
+<li>1 colherzinha de fermento em po</li>
+<li>Recheio: geleia de fruta, doce de leite ou recheio cremoso</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bata o acucar com a manteiga ate obter um creme esbranquicado.</li>
+<li class="step"><span class="step-num">2</span>Junte os ovos, um a um, continuando a bater ate que se incorporem bem a massa.</li>
+<li class="step"><span class="step-num">3</span>Acrescente a farinha de trigo peneirada com o fermento, alternadamente com as claras batidas em neve; misture cuidadosamente.</li>
+<li class="step"><span class="step-num">4</span>Asse em forma untada e levemente enfarinhada, em forno brando.</li>
+<li class="step"><span class="step-num">5</span>Espere esfriar e recheie a gosto.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(1)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-1" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolo-de-150-gramas.jpg" class="thumb" alt="Bolo de 150 Gramas" onclick="openModal('assets/original_recipes/bolo-de-150-gramas.jpg','Bolo de 150 Gramas')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-2">
+  <div class="card-header" onclick="toggleCard(2)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo da Felicidade</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-2">▼</span>
+  </div>
+  <div class="card-body" id="body-2" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>250 g de margarina</li>
+<li>3 xicaras (cha) de acucar</li>
+<li>4 ovos inteiros</li>
+<li>3 xicaras (cha) de farinha de trigo</li>
+<li>1 xicara (cha) de leite</li>
+<li>1 pitada de sal</li>
+<li>1 colher (sobremesa) de fermento em po</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bata a margarina e o acucar na batedeira ate que fique cremoso.</li>
+<li class="step"><span class="step-num">2</span>Acrescente os ovos inteiros, um a um.</li>
+<li class="step"><span class="step-num">3</span>Por fim, ponha a farinha de trigo e o leite, apenas misturando.</li>
+<li class="step"><span class="step-num">4</span>Leve para assar em duas formas untadas de 25 cm de diametro, untadas e polvilhadas, em forno quente, por 20 a 25 minutos.</li>
+<li class="step"><span class="step-num">5</span>Deixe esfriar, una cada bolo e cubra com baba de moca.</li>
+<p class="note">💡 Nota: Receita da Profa. Lindalva Paiva — Recife, PE.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(2)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-2" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolo-da-felicidade.jpg" class="thumb" alt="Bolo da Felicidade" onclick="openModal('assets/original_recipes/bolo-da-felicidade.jpg','Bolo da Felicidade')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-3">
+  <div class="card-header" onclick="toggleCard(3)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo de Abobrinha</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-3">▼</span>
+  </div>
+  <div class="card-body" id="body-3" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 xicaras de acucar</li>
+<li>2 xicaras de farinha de trigo</li>
+<li>1 colher de cha de sal</li>
+<li>1 colher de cha de baunilha</li>
+<li>2 ovos inteiros</li>
+<li>1/4 xicara de oleo</li>
+<li>1 xicara de abobrinha ralada</li>
+<li>1 xicara de uva passa branca sem caroco</li>
+<li>1 xicara de nozes trituradas</li>
+<li>1 colher de sopa de fermento Royal</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bata na batedeira o oleo, os ovos e o acucar (ou use o liquidificador para essa etapa).</li>
+<li class="step"><span class="step-num">2</span>Acrescente a farinha, o sal e a baunilha, misturando bem.</li>
+<li class="step"><span class="step-num">3</span>Adicione a abobrinha ralada.</li>
+<li class="step"><span class="step-num">4</span>Por fim, misture (sem bater) as passas, as nozes e o fermento.</li>
+<li class="step"><span class="step-num">5</span>Unte a forma com farinha de rosca e despeje a massa.</li>
+<li class="step"><span class="step-num">6</span>Asse em forno medio preaquecido.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(3)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-3" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolo-de-abobrinha.jpg" class="thumb" alt="Bolo de Abobrinha" onclick="openModal('assets/original_recipes/bolo-de-abobrinha.jpg','Bolo de Abobrinha')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-4">
+  <div class="card-header" onclick="toggleCard(4)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo de Banana (Buca de Banana — Batedeira)</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-4">▼</span>
+  </div>
+  <div class="card-body" id="body-4" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>4 xicaras de farinha de trigo</li>
+<li>2 xicaras de acucar</li>
+<li>1 xicara de leite</li>
+<li>4 ovos</li>
+<li>2 colheres de margarina</li>
+<li>2 colheres de fermento para bolo</li>
+<li>2 bananas picadas</li>
+</ul>
+<p><strong>Farofa</strong></p>
+<ul>
+<li>1/2 xicara de acucar</li>
+<li>1/2 xicara de farinha de trigo</li>
+<li>2 colheres de margarina</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bata os ovos ate dar volume.</li>
+<li class="step"><span class="step-num">2</span>Acrescente o acucar, o leite e a margarina, continuando a bater.</li>
+<li class="step"><span class="step-num">3</span>Por ultimo adicione a farinha, as bananas e o fermento.</li>
+<li class="step"><span class="step-num">4</span>Para a farofa, misture o acucar, a farinha e a margarina ate obter uma farofa grossa.</li>
+<li class="step"><span class="step-num">5</span>Despeje a massa em forma untada, espalhe a farofa por cima e, se desejar, adicione pedacos de banana.</li>
+<li class="step"><span class="step-num">6</span>Asse em forno preaquecido.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-4" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-5">
+  <div class="card-header" onclick="toggleCard(5)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo de Cenoura</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-5">▼</span>
+  </div>
+  <div class="card-body" id="body-5" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>3 cenouras grandes</li>
+<li>4 ovos</li>
+<li>1/2 xicara (cha) de oleo</li>
+<li>2 1/2 xicaras de farinha de trigo</li>
+<li>2 xicaras de acucar</li>
+<li>1 colher de sopa de fermento Royal</li>
+</ul>
+<p><strong>Cobertura</strong></p>
+<ul>
+<li>3 colheres de chocolate em po</li>
+<li>4 colheres de acucar</li>
+<li>2 colheres de leite</li>
+<li>1 colher de manteiga</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>No liquidificador, bata a cenoura, os ovos e o oleo.</li>
+<li class="step"><span class="step-num">2</span>Adicione o acucar e bata mais.</li>
+<li class="step"><span class="step-num">3</span>Despeje em uma tigela e misture a farinha devagar.</li>
+<li class="step"><span class="step-num">4</span>Por ultimo acrescente o fermento e transfira para a assadeira untada.</li>
+<li class="step"><span class="step-num">5</span>Asse em forno preaquecido a 180°C.</li>
+<li class="step"><span class="step-num">6</span>Para a cobertura: misture todos os ingredientes e leve ao fogo ate encorpar. Espalhe sobre o bolo ainda quente.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(5)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-5" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolo-de-cenoura.jpg" class="thumb" alt="Bolo de Cenoura" onclick="openModal('assets/original_recipes/bolo-de-cenoura.jpg','Bolo de Cenoura')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-6">
+  <div class="card-header" onclick="toggleCard(6)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo de Chocolate com Recheio e Cobertura</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-6">▼</span>
+  </div>
+  <div class="card-body" id="body-6" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<p class="subtitle">Massa</p>
+<ul>
+<li>3 ovos</li>
+<li>1 xicara de acucar</li>
+<li>1 xicara de farinha de trigo</li>
+<li>3 colheres de sopa de chocolate em po</li>
+<li>1 colher de sopa de fermento</li>
+<li>1/2 xicara de leite</li>
+<li>1/2 xicara de oleo</li>
+</ul>
+<p class="subtitle">Recheio e Cobertura</p>
+<ul>
+<li>1 lata de leite condensado</li>
+<li>3 colheres de sopa de chocolate em po</li>
+<li>1 colher de manteiga</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bata todos os ingredientes da massa no liquidificador ou na batedeira.</li>
+<li class="step"><span class="step-num">2</span>Asse em forma untada e enfarinhada em forno a 180°C por cerca de 30 minutos.</li>
+<li class="step"><span class="step-num">3</span>Para o recheio/cobertura: leve todos os ingredientes ao fogo mexendo sempre ate o ponto de brigadeiro.</li>
+<li class="step"><span class="step-num">4</span>Recheie e cubra o bolo frio.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(6)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-6" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolo-de-chocolate.jpg" class="thumb" alt="Bolo de Chocolate com Recheio e Cobertura" onclick="openModal('assets/original_recipes/bolo-de-chocolate.jpg','Bolo de Chocolate com Recheio e Cobertura')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-7">
+  <div class="card-header" onclick="toggleCard(7)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo de Chocolate de Ana Valeria</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-7">▼</span>
+  </div>
+  <div class="card-body" id="body-7" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<p class="subtitle">Massa</p>
+<ul>
+<li>1 xicara de manteiga</li>
+<li>2 xicaras de acucar</li>
+<li>4 gemas</li>
+<li>2 xicaras de Nescau</li>
+<li>1 xicara de leite</li>
+<li>1 colher de sopa de fermento</li>
+<li>2 xicaras de farinha de trigo</li>
+<li>4 claras em neve</li>
+</ul>
+<p class="subtitle">Cobertura e Recheio</p>
+<ul>
+<li>1 lata de creme de leite</li>
+<li>5 colheres de sopa de Nescau</li>
+<li>1 colher de cha de manteiga</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bata a manteiga com o acucar e as gemas.</li>
+<li class="step"><span class="step-num">2</span>Adicione o Nescau, o leite, a farinha e o fermento, misturando bem.</li>
+<li class="step"><span class="step-num">3</span>Por ultimo incorpore as claras batidas em neve com movimentos delicados.</li>
+<li class="step"><span class="step-num">4</span>Asse em forma untada e enfarinhada em forno preaquecido a 180°C.</li>
+<li class="step"><span class="step-num">5</span>Para a cobertura e recheio: leve todos os ingredientes ao fogo. Quando ferver, retire. Utilize frio.</li>
+<p class="note">💡 Nota: Receita de Ana Valeria.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(7)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-7" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolo-de-chocolate.jpg" class="thumb" alt="Bolo de Chocolate de Ana Valeria" onclick="openModal('assets/original_recipes/bolo-de-chocolate.jpg','Bolo de Chocolate de Ana Valeria')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-8">
+  <div class="card-header" onclick="toggleCard(8)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo de Fubá (Simples)</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-8">▼</span>
+  </div>
+  <div class="card-body" id="body-8" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 xicaras de fuba</li>
+<li>2 xicaras de acucar</li>
+<li>1 xicara de farinha de trigo</li>
+<li>1 xicara de leite</li>
+<li>4 ovos</li>
+<li>1 colher de sopa de fermento</li>
+<li>2 colheres de sopa de manteiga ou margarina</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bata todos os ingredientes no liquidificador.</li>
+<li class="step"><span class="step-num">2</span>Despeje em forma untada e polvilhada.</li>
+<li class="step"><span class="step-num">3</span>Asse em forno preaquecido a 180°C ate dourar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-8" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-9">
+  <div class="card-header" onclick="toggleCard(9)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo de Fubá com Goiabada</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-9">▼</span>
+  </div>
+  <div class="card-body" id="body-9" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 xicaras de fuba</li>
+<li>1 1/2 xicara de farinha de trigo</li>
+<li>1 1/2 xicara de acucar</li>
+<li>1 colher de sopa de fermento</li>
+<li>3 ovos</li>
+<li>1 xicara de leite</li>
+<li>1/2 xicara de oleo</li>
+<li>Goiabada a gosto cortada em fatias</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bata no liquidificador os ovos, o leite, o oleo e o acucar.</li>
+<li class="step"><span class="step-num">2</span>Transfira para uma tigela, acrescente o fuba, a farinha e o fermento, misturando bem.</li>
+<li class="step"><span class="step-num">3</span>Despeje metade da massa em forma untada.</li>
+<li class="step"><span class="step-num">4</span>Disponha fatias de goiabada e cubra com o restante da massa.</li>
+<li class="step"><span class="step-num">5</span>Asse em forno preaquecido a 180°C por aproximadamente 40 minutos.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-9" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-10">
+  <div class="card-header" onclick="toggleCard(10)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo de Fubá Cremoso I</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-10">▼</span>
+  </div>
+  <div class="card-body" id="body-10" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>3 ovos</li>
+<li>1 xicara de acucar</li>
+<li>1 xicara de oleo</li>
+<li>2 xicaras de leite</li>
+<li>1 xicara de fuba</li>
+<li>1/2 xicara de farinha de trigo</li>
+<li>1 colher de sopa de fermento</li>
+<li>1 vidro de leite de coco</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bata todos os ingredientes no liquidificador.</li>
+<li class="step"><span class="step-num">2</span>Despeje em forma untada.</li>
+<li class="step"><span class="step-num">3</span>Asse em forno medio preaquecido ate firmar no centro (cerca de 40-50 minutos).</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-10" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-11">
+  <div class="card-header" onclick="toggleCard(11)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo de Fubá Cremoso II</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-11">▼</span>
+  </div>
+  <div class="card-body" id="body-11" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>4 ovos</li>
+<li>1 xicara de acucar</li>
+<li>1 xicara de oleo</li>
+<li>2 xicaras de leite</li>
+<li>1 xicara de fuba</li>
+<li>1 colher de sopa de farinha de trigo</li>
+<li>1 colher de sopa de fermento</li>
+<li>1 lata de leite condensado</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bata todos os ingredientes no liquidificador.</li>
+<li class="step"><span class="step-num">2</span>Despeje em forma untada e polvilhada.</li>
+<li class="step"><span class="step-num">3</span>Asse em forno preaquecido a 180°C ate dourar e firmar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-11" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-12">
+  <div class="card-header" onclick="toggleCard(12)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo de Laranja com Casca</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-12">▼</span>
+  </div>
+  <div class="card-body" id="body-12" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 laranjas inteiras (com casca)</li>
+<li>3 ovos</li>
+<li>1 1/2 xicara de acucar</li>
+<li>1 xicara de oleo</li>
+<li>2 xicaras de farinha de trigo</li>
+<li>1 colher (sopa) de fermento</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bata as laranjas (cortadas em pedacos, sem sementes), os ovos, o acucar e o oleo no liquidificador.</li>
+<li class="step"><span class="step-num">2</span>Despeje a massa em uma tigela e acrescente a farinha e o fermento, mexendo ate a massa ficar homogenea.</li>
+<li class="step"><span class="step-num">3</span>Coloque para assar em forma untada em forno preaquecido a 180°C.</li>
+<li class="step"><span class="step-num">4</span>Utilize o suco da outra laranja para fazer uma calda e regar o bolo ainda quente.</li>
+<p class="note">💡 Nota: A versao original da receita tinha parte do texto cortado na imagem.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(12)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-12" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolo-de-laranja-com-casca.jpg" class="thumb" alt="Bolo de Laranja com Casca" onclick="openModal('assets/original_recipes/bolo-de-laranja-com-casca.jpg','Bolo de Laranja com Casca')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-13">
+  <div class="card-header" onclick="toggleCard(13)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo de Laranjinha</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-13">▼</span>
+  </div>
+  <div class="card-body" id="body-13" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 laranja sem miolo e sem sementes (com casca)</li>
+<li>2 xicaras de acucar</li>
+<li>4 ovos</li>
+<li>2 xicaras de farinha de trigo</li>
+<li>1/2 xicara de oleo</li>
+<li>1 xicara de agua</li>
+<li>1 colher de fermento</li>
+</ul>
+<p><strong>Cobertura</strong></p>
+<ul>
+<li>Suco de uma laranja</li>
+<li>Acucar a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Picar a laranja em pedacos menores.</li>
+<li class="step"><span class="step-num">2</span>No liquidificador, bater os liquidos primeiro e ir adicionando os solidos.</li>
+<li class="step"><span class="step-num">3</span>Por ultimo acrescentar o fermento e misturar bem.</li>
+<li class="step"><span class="step-num">4</span>Assar em forma untada em forno preaquecido.</li>
+<li class="step"><span class="step-num">5</span>Para a cobertura: apurar o suco de laranja com acucar e colocar sobre o bolo quente.</li>
+<li class="step"><span class="step-num">6</span>Enfeitar com raspas de laranja.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(13)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-13" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolo-de-laranjinha.jpg" class="thumb" alt="Bolo de Laranjinha" onclick="openModal('assets/original_recipes/bolo-de-laranjinha.jpg','Bolo de Laranjinha')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-14">
+  <div class="card-header" onclick="toggleCard(14)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo de Maca</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-14">▼</span>
+  </div>
+  <div class="card-body" id="body-14" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>3 macas descascadas (reservar as cascas)</li>
+<li>1 xicara de acucar</li>
+<li>1/2 xicara de azeite</li>
+<li>1 colher de canela em po</li>
+<li>1 xicara de farinha de trigo</li>
+<li>3 ovos</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>No liquidificador, bater as cascas das macas com o acucar, o azeite, a canela e os ovos.</li>
+<li class="step"><span class="step-num">2</span>Cortar as macas em cubos e envolver em farinha de trigo.</li>
+<li class="step"><span class="step-num">3</span>Colocar os cubos de maca na forma untada.</li>
+<li class="step"><span class="step-num">4</span>Despejar os ingredientes batidos no liquidificador por cima.</li>
+<li class="step"><span class="step-num">5</span>Levar ao forno preaquecido a 180°C ate dourar.</li>
+<p class="note">💡 Nota: Os passos finais estavam parcialmente cortados na receita original.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(14)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-14" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolo-de-maca.jpg" class="thumb" alt="Bolo de Maca" onclick="openModal('assets/original_recipes/bolo-de-maca.jpg','Bolo de Maca')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-15">
+  <div class="card-header" onclick="toggleCard(15)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo de Milho com Coco</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-15">▼</span>
+  </div>
+  <div class="card-body" id="body-15" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>200 g de margarina</li>
+<li>2 xicaras de acucar</li>
+<li>3 gemas</li>
+<li>2 xicaras de fuba</li>
+<li>1 xicara de farinha de trigo</li>
+<li>1 vidro (200 ml) de leite de coco</li>
+<li>1 1/2 xicara de leite de vaca</li>
+<li>3 claras em neve</li>
+<li>1 pitada de sal</li>
+<li>1 colher de sopa de fermento</li>
+<li>50 g de coco ralado</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bater a margarina com o acucar ate ficar esbranquicado.</li>
+<li class="step"><span class="step-num">2</span>Acrescentar as gemas, uma a uma.</li>
+<li class="step"><span class="step-num">3</span>Juntar aos poucos o fuba, a farinha, o leite de coco e o leite de vaca. Reservar.</li>
+<li class="step"><span class="step-num">4</span>Bater as claras em neve; acrescentar o sal, o fermento e o coco ralado.</li>
+<li class="step"><span class="step-num">5</span>Juntar a massa reservada, misturando delicadamente.</li>
+<li class="step"><span class="step-num">6</span>Colocar em forma de cone untada e polvilhada com fuba.</li>
+<li class="step"><span class="step-num">7</span>Levar ao forno preaquecido e moderado ate dourar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(15)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-15" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolo-de-milho-com-coco.jpg" class="thumb" alt="Bolo de Milho com Coco" onclick="openModal('assets/original_recipes/bolo-de-milho-com-coco.jpg','Bolo de Milho com Coco')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-16">
+  <div class="card-header" onclick="toggleCard(16)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo de Milho da Tonha</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-16">▼</span>
+  </div>
+  <div class="card-body" id="body-16" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 lata de milho verde</li>
+<li>3 ovos</li>
+<li>1 xicara de acucar</li>
+<li>1 xicara de leite</li>
+<li>1/2 xicara de oleo</li>
+<li>1 xicara de farinha de trigo</li>
+<li>1 colher de sopa de fermento</li>
+<li>Coco ralado a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bata o milho, os ovos, o acucar, o leite e o oleo no liquidificador.</li>
+<li class="step"><span class="step-num">2</span>Adicione a farinha e o fermento, misturando bem.</li>
+<li class="step"><span class="step-num">3</span>Acrescente o coco ralado.</li>
+<li class="step"><span class="step-num">4</span>Asse em forma untada em forno preaquecido a 180°C por cerca de 35-40 minutos.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-16" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-17">
+  <div class="card-header" onclick="toggleCard(17)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo de Tapioca</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-17">▼</span>
+  </div>
+  <div class="card-body" id="body-17" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>4 ovos</li>
+<li>1 copo de leite de coco</li>
+<li>300 g de tapioca (granulada)</li>
+<li>300 g de acucar</li>
+<li>2 colheres bem cheias de manteiga</li>
+<li>1 colher de fermento</li>
+<li>2 colheres (sopa) de coco ralado</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bata as gemas com o acucar e a manteiga ate ficar cremoso.</li>
+<li class="step"><span class="step-num">2</span>Junte a tapioca, o fermento, o coco ralado e aos poucos o leite de coco.</li>
+<li class="step"><span class="step-num">3</span>Por fim incorpore as claras batidas em neve.</li>
+<li class="step"><span class="step-num">4</span>Unte a forma e despeje a massa.</li>
+<li class="step"><span class="step-num">5</span>Asse em forno medio ate dourar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(17)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-17" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolo-de-tapioca.jpg" class="thumb" alt="Bolo de Tapioca" onclick="openModal('assets/original_recipes/bolo-de-tapioca.jpg','Bolo de Tapioca')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-18">
+  <div class="card-header" onclick="toggleCard(18)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo Gelado</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-18">▼</span>
+  </div>
+  <div class="card-body" id="body-18" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>4 ovos</li>
+<li>1 xicara de margarina</li>
+<li>1 xicara de acucar</li>
+<li>2 xicaras de farinha de trigo</li>
+<li>1 colher de po royal</li>
+<li>1 colher de bicarbonato</li>
+<li>2 xicaras de leite</li>
+</ul>
+<p><strong>Calda</strong></p>
+<ul>
+<li>1 lata de leite moca</li>
+<li>1 lata de leite</li>
+<li>1 pacote de coco ralado</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bater as claras em neve e reservar.</li>
+<li class="step"><span class="step-num">2</span>Bater as gemas com o acucar e a margarina.</li>
+<li class="step"><span class="step-num">3</span>Acrescentar alternadamente a farinha e o leite.</li>
+<li class="step"><span class="step-num">4</span>Adicionar o po royal e por ultimo incorporar as claras em neve.</li>
+<li class="step"><span class="step-num">5</span>Assar em forma untada em forno preaquecido.</li>
+<li class="step"><span class="step-num">6</span>Ainda quente, furar o bolo e regar com a calda (leite moca misturado ao leite).</li>
+<li class="step"><span class="step-num">7</span>Polvilhar com coco ralado e levar a geladeira.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(18)">📸 Ver Foto (2)</button>
+    </div>
+    <div class="photo-strip" id="photos-18" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolo-gelado-coco.jpg" class="thumb" alt="Bolo Gelado" onclick="openModal('assets/original_recipes/bolo-gelado-coco.jpg','Bolo Gelado')" /><img src="assets/original_recipes/bolo-gelado.jpg" class="thumb" alt="Bolo Gelado" onclick="openModal('assets/original_recipes/bolo-gelado.jpg','Bolo Gelado')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-19">
+  <div class="card-header" onclick="toggleCard(19)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo Gelado Coco</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-19">▼</span>
+  </div>
+  <div class="card-body" id="body-19" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 xicaras de farinha de coco</li>
+<li>1 xicara de adocante</li>
+<li>1 xicara de leite de coco</li>
+<li>1/2 xicara de oleo de coco</li>
+<li>1 colher de cha de extrato de baunilha</li>
+<li>4 ovos</li>
+<li>1 colher de sopa de fermento</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Em uma vasilha, misturar todos os ingredientes e por ultimo adicionar o fermento.</li>
+<li class="step"><span class="step-num">2</span>Colocar a massa em forma untada e levar ao forno por 40 minutos.</li>
+<li class="step"><span class="step-num">3</span>Retirar do forno e esperar esfriar.</li>
+<li class="step"><span class="step-num">4</span>Polvilhar farinha de coco ou coco ralado.</li>
+<li class="step"><span class="step-num">5</span>Servir gelado; para umedecer o bolo, colocar leite de coco misturado com adocante.</li>
+<p class="note">💡 Nota: Receita de Thais Nakaie.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(19)">📸 Ver Foto (2)</button>
+    </div>
+    <div class="photo-strip" id="photos-19" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolo-gelado-coco.jpg" class="thumb" alt="Bolo Gelado Coco" onclick="openModal('assets/original_recipes/bolo-gelado-coco.jpg','Bolo Gelado Coco')" /><img src="assets/original_recipes/bolo-gelado.jpg" class="thumb" alt="Bolo Gelado Coco" onclick="openModal('assets/original_recipes/bolo-gelado.jpg','Bolo Gelado Coco')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-20">
+  <div class="card-header" onclick="toggleCard(20)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo Jofinho</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-20">▼</span>
+  </div>
+  <div class="card-body" id="body-20" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>100 g de manteiga</li>
+<li>1 xicara de maizena</li>
+<li>3 ovos</li>
+<li>2 xicaras (cha) de farinha de trigo</li>
+<li>2 xicaras (cha) de acucar</li>
+<li>2 colheres de fermento</li>
+<li>1 vidro de leite de coco</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bata a manteiga com o acucar e as gemas.</li>
+<li class="step"><span class="step-num">2</span>Peneire junto a farinha, a maizena e o fermento.</li>
+<li class="step"><span class="step-num">3</span>Adicione ao creme alternando com o leite de coco.</li>
+<li class="step"><span class="step-num">4</span>Bata as claras em neve e misture lentamente a mao.</li>
+<li class="step"><span class="step-num">5</span>Asse em forma aquecida (untada e polvilhada).</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(20)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-20" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolo-jofinho.jpg" class="thumb" alt="Bolo Jofinho" onclick="openModal('assets/original_recipes/bolo-jofinho.jpg','Bolo Jofinho')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-21">
+  <div class="card-header" onclick="toggleCard(21)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo mousse coco (Sandra)</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-21">▼</span>
+  </div>
+  <div class="card-body" id="body-21" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<p class="subtitle">Base</p>
+<ul>
+<li>1/2 receita de pao de lo</li>
+</ul>
+<p class="subtitle">Mousse de Coco</p>
+<ul>
+<li>1 lata de leite condensado</li>
+<li>1 lata de creme de leite sem soro</li>
+<li>1 vidro de leite de coco</li>
+<li>1 vidro de leite</li>
+<li>1 pacote de coco sococo (100 g)</li>
+<li>1 caixa de maria mole (dissolvida conforme instrucao da embalagem)</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Preparar o pao de lo (meia receita) e dispor na forma.</li>
+<li class="step"><span class="step-num">2</span>Bater todos os ingredientes da mousse no liquidificador e despejar sobre a massa de pao de lo ainda na forma.</li>
+<li class="step"><span class="step-num">3</span>Colocar para gelar.</li>
+<li class="step"><span class="step-num">4</span>Virar, cobrir com chantilly e servir com calda de morangos.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(21)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-21" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolo-mousse-coco.jpg" class="thumb" alt="Bolo mousse coco (Sandra)" onclick="openModal('assets/original_recipes/bolo-mousse-coco.jpg','Bolo mousse coco (Sandra)')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-22">
+  <div class="card-header" onclick="toggleCard(22)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo Pao de Lo</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-22">▼</span>
+  </div>
+  <div class="card-body" id="body-22" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>6 ovos</li>
+<li>6 colheres (sopa) de acucar</li>
+<li>6 colheres (sopa) de farinha de trigo</li>
+<li>1 colher de cha de fermento</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bata as gemas com o acucar ate obter um creme claro e fofo.</li>
+<li class="step"><span class="step-num">2</span>Adicione a farinha peneirada, misturando delicadamente.</li>
+<li class="step"><span class="step-num">3</span>Incorpore as claras batidas em neve.</li>
+<li class="step"><span class="step-num">4</span>Por ultimo acrescente o fermento.</li>
+<li class="step"><span class="step-num">5</span>Asse em forno preaquecido a 180°C em forma untada por cerca de 25-30 minutos.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-22" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-23">
+  <div class="card-header" onclick="toggleCard(23)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo Regina Barroso</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-23">▼</span>
+  </div>
+  <div class="card-body" id="body-23" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<p class="subtitle">Creme</p>
+<ul>
+<li>2 latas de leite condensado</li>
+<li>2 litros de leite</li>
+<li>2 colheres de manteiga</li>
+<li>4 gemas (passadas na peneira)</li>
+<li>2 colheres de maizena</li>
+<li>2 caixas de creme de leite</li>
+</ul>
+<p class="subtitle">Baba de Moca</p>
+<ul>
+<li>1 caixa de creme de leite</li>
+<li>1 vidro de leite de coco</li>
+<li>1 colher rasa de acucar</li>
+<li>2 dedos de leite</li>
+</ul>
+<p class="subtitle">Calda de Morango</p>
+<ul>
+<li>5 caixas de morango</li>
+<li>1/2 xicara de acucar</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Para o creme: levar ao fogo o leite condensado, o leite, a manteiga, as gemas e a maizena, mexendo ate engrossar. Desligar e incorporar o creme de leite.</li>
+<li class="step"><span class="step-num">2</span>Para a baba de moca: misturar todos os ingredientes.</li>
+<li class="step"><span class="step-num">3</span>Para a calda de morango: picar os morangos e levar ao fogo com acucar ate virar uma geleia.</li>
+<li class="step"><span class="step-num">4</span>Montar o bolo em camadas: creme, baba de moca e morango.</li>
+<p class="note">💡 Nota: Receita da Regina Barroso. O bolo e composto por tres camadas.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(23)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-23" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolo-regina-barroso.jpg" class="thumb" alt="Bolo Regina Barroso" onclick="openModal('assets/original_recipes/bolo-regina-barroso.jpg','Bolo Regina Barroso')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-24">
+  <div class="card-header" onclick="toggleCard(24)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolo Surpresa de Carne</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-24">▼</span>
+  </div>
+  <div class="card-body" id="body-24" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<p class="subtitle">Massa</p>
+<ul>
+<li>3 ovos</li>
+<li>1 xicara de leite</li>
+<li>1 xicara de oleo</li>
+<li>2 xicaras de farinha de trigo</li>
+<li>1 colher de sopa de fermento</li>
+<li>Sal a gosto</li>
+</ul>
+<p class="subtitle">Recheio</p>
+<ul>
+<li>300 g de carne moda refogada com temperos a gosto</li>
+<li>Azeitonas e outros ingredientes a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bata no liquidificador os ovos, o leite, o oleo e o sal.</li>
+<li class="step"><span class="step-num">2</span>Adicione a farinha e o fermento, misturando ate homogenizar.</li>
+<li class="step"><span class="step-num">3</span>Despeje metade da massa em forma untada.</li>
+<li class="step"><span class="step-num">4</span>Espalhe o recheio de carne e cubra com o restante da massa.</li>
+<li class="step"><span class="step-num">5</span>Asse em forno preaquecido a 180°C por cerca de 40 minutos.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-24" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-25">
+  <div class="card-header" onclick="toggleCard(25)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolacha da Mae</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-25">▼</span>
+  </div>
+  <div class="card-body" id="body-25" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 xicara de nata</li>
+<li>1/2 xicara de banha</li>
+<li>3 ovos</li>
+<li>1 xicara de leite</li>
+<li>1 colher de royal</li>
+<li>3 xicaras de acucar</li>
+<li>1 colher de sal amoniaco</li>
+<li>1 pitada de sal</li>
+<li>Farinha de trigo ate dar o ponto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Dissolver o sal amoniaco no leite fervente.</li>
+<li class="step"><span class="step-num">2</span>A parte, bater os ovos com o acucar como gemada.</li>
+<li class="step"><span class="step-num">3</span>Misturar a banha, a nata e o sal a gemada.</li>
+<li class="step"><span class="step-num">4</span>Acrescentar o leite com o amoniaco.</li>
+<li class="step"><span class="step-num">5</span>Misturar a farinha com o royal e ir adicionando ate dar o ponto (a massa e meio mole).</li>
+<li class="step"><span class="step-num">6</span>Modelar as bolachas e assar em fogo quente.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(25)">📸 Ver Foto (2)</button>
+    </div>
+    <div class="photo-strip" id="photos-25" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolacha-da-mae.jpg" class="thumb" alt="Bolacha da Mae" onclick="openModal('assets/original_recipes/bolacha-da-mae.jpg','Bolacha da Mae')" /><img src="assets/original_recipes/bolacha-da-mae-2.jpg" class="thumb" alt="Bolacha da Mae" onclick="openModal('assets/original_recipes/bolacha-da-mae-2.jpg','Bolacha da Mae')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-26">
+  <div class="card-header" onclick="toggleCard(26)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bombocado de Fuba</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-26">▼</span>
+  </div>
+  <div class="card-body" id="body-26" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 lata de leite moca</li>
+<li>1 lata de leite de vaca</li>
+<li>2 colheres de sopa de fuba</li>
+<li>2 colheres de sopa de farinha de trigo</li>
+<li>1 vidro de leite de coco</li>
+<li>1 colher de sopa de margarina</li>
+<li>1 colher de sopa de fermento</li>
+<li>4 ovos</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bater os ovos juntos.</li>
+<li class="step"><span class="step-num">2</span>Misturar todos os ingredientes.</li>
+<li class="step"><span class="step-num">3</span>Untar uma forma pequena.</li>
+<li class="step"><span class="step-num">4</span>Assar por 20 minutos em forno preaquecido.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(26)">📸 Ver Foto (2)</button>
+    </div>
+    <div class="photo-strip" id="photos-26" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bombocado-de-fuba.jpg" class="thumb" alt="Bombocado de Fuba" onclick="openModal('assets/original_recipes/bombocado-de-fuba.jpg','Bombocado de Fuba')" /><img src="assets/original_recipes/bombocado-de-fuba-2.jpg" class="thumb" alt="Bombocado de Fuba" onclick="openModal('assets/original_recipes/bombocado-de-fuba-2.jpg','Bombocado de Fuba')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-27">
+  <div class="card-header" onclick="toggleCard(27)">
+    <div class="card-title-row">
+      <h3 class="card-name">Cueca Virada</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-27">▼</span>
+  </div>
+  <div class="card-body" id="body-27" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>11 colheres de acucar (ou 1 copo)</li>
+<li>1 colher de sopa de fermento</li>
+<li>4 colheres de sopa de fuba</li>
+<li>1 colher de sopa de margarina</li>
+<li>3 ovos</li>
+<li>4 copos de farinha de trigo</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar todos os ingredientes ate obter uma massa homogenea.</li>
+<li class="step"><span class="step-num">2</span>Assar em forma untada em forno preaquecido.</li>
+<p class="note">💡 Nota: A receita original indica "bacia branca cheia" como referencia de quantidade.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(27)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-27" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/cueca-virada-ganache.jpg" class="thumb" alt="Cueca Virada" onclick="openModal('assets/original_recipes/cueca-virada-ganache.jpg','Cueca Virada')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-28">
+  <div class="card-header" onclick="toggleCard(28)">
+    <div class="card-title-row">
+      <h3 class="card-name">Cuque de Uva</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-28">▼</span>
+  </div>
+  <div class="card-body" id="body-28" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>4 xicaras de farinha de trigo</li>
+<li>2 xicaras de acucar (+ 1/2 xicara extra se usar uva)</li>
+<li>1 xicara de margarina</li>
+<li>1 xicara de leite</li>
+<li>4 ovos</li>
+<li>1 1/2 colher de cha de fermento</li>
+<li>1/2 kg de uva preta</li>
+</ul>
+<p><strong>Farofa</strong></p>
+<ul>
+<li>1 colher de manteiga</li>
+<li>2 colheres de acucar</li>
+<li>4 colheres de farinha de trigo</li>
+<li>Canela a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bater na batedeira o acucar, a margarina e as gemas.</li>
+<li class="step"><span class="step-num">2</span>Acrescentar o trigo aos poucos, xicara a xicara.</li>
+<li class="step"><span class="step-num">3</span>Por ultimo incorporar as claras em neve e o fermento.</li>
+<li class="step"><span class="step-num">4</span>Dispor a massa em forma untada, distribuir as uvas por cima.</li>
+<li class="step"><span class="step-num">5</span>Misturar os ingredientes da farofa e polvilhar sobre as uvas.</li>
+<li class="step"><span class="step-num">6</span>Assar em forno preaquecido.</li>
+<p class="note">💡 Nota: Receita da Tia Olga.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(28)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-28" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/cuque-de-uva.jpg" class="thumb" alt="Cuque de Uva" onclick="openModal('assets/original_recipes/cuque-de-uva.jpg','Cuque de Uva')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="indice" id="card-29">
+  <div class="card-header" onclick="toggleCard(29)">
+    <div class="card-title-row">
+      <h3 class="card-name">Torta de Banana</h3>
+      <span class="cat-badge">Indice</span>
+    </div>
+    <span class="chevron" id="chev-29">▼</span>
+  </div>
+  <div class="card-body" id="body-29" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 ovos (claras separadas, batidas em neve)</li>
+<li>2 colheres de manteiga</li>
+<li>1 xicara de acucar</li>
+<li>3 xicaras de farinha de trigo</li>
+<li>1 1/2 xicara de leite</li>
+<li>1 colher de sopa de po royal</li>
+<li>6 bananas maduras</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar tudo (exceto as bananas e as claras) ate obter uma massa homogenea.</li>
+<li class="step"><span class="step-num">2</span>Incorporar as claras em neve delicadamente.</li>
+<li class="step"><span class="step-num">3</span>Colocar a massa em forma untada.</li>
+<li class="step"><span class="step-num">4</span>Dispor as bananas em tiras sobre a massa.</li>
+<li class="step"><span class="step-num">5</span>Polvilhar com acucar e canela.</li>
+<li class="step"><span class="step-num">6</span>Assar em forno preaquecido ate dourar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(29)">📸 Ver Foto (2)</button>
+    </div>
+    <div class="photo-strip" id="photos-29" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/donuts-torta-de-banana.jpg" class="thumb" alt="Torta de Banana" onclick="openModal('assets/original_recipes/donuts-torta-de-banana.jpg','Torta de Banana')" /><img src="assets/original_recipes/torta-de-banana.jpg" class="thumb" alt="Torta de Banana" onclick="openModal('assets/original_recipes/torta-de-banana.jpg','Torta de Banana')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="paes-e-massas-doces" id="card-30">
+  <div class="card-header" onclick="toggleCard(30)">
+    <div class="card-title-row">
+      <h3 class="card-name">Torta de Goiabada</h3>
+      <span class="cat-badge">Paes e Massas Doces</span>
+    </div>
+    <span class="chevron" id="chev-30">▼</span>
+  </div>
+  <div class="card-body" id="body-30" style="display:none">
+    <div class="recipe-content">
+      <p class="note">💡 Rendimento: 12 porcoes • Tempo de preparo: 1 hora</p>
+<p><strong>Ingredientes</strong></p>
+<ul>
+<li>3 xicaras (cha) de farinha de trigo</li>
+<li>1 xicara (cha) de acucar</li>
+<li>1 colher (sopa) de fermento em po</li>
+<li>1 pitada de sal</li>
+<li>1/2 xicara (cha) de leite</li>
+<li>2 ovos</li>
+<li>2 colheres (sopa) de margarina</li>
+<li>Margarina e farinha de trigo para untar</li>
+<li>Fatias de goiabada a gosto</li>
+<li>1 lata de leite condensado</li>
+<li>100 g de coco ralado grosso</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Na batedeira, misturar a farinha, o acucar, o fermento, o sal, o leite, os ovos e a margarina ate obter uma massa homogenea.</li>
+<li class="step"><span class="step-num">2</span>Colocar a massa em forma untada e enfarinhada.</li>
+<li class="step"><span class="step-num">3</span>Cobrir com fatias de goiabada e despejar o leite condensado por cima.</li>
+<li class="step"><span class="step-num">4</span>Polvilhar o coco ralado e levar ao forno preaquecido por 35 minutos.</li>
+<li class="step"><span class="step-num">5</span>Retirar e servir.</li>
+<p>---</p>
+<p>## Paes e Massas Doces</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(30)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-30" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/torta-de-goiabada.jpg" class="thumb" alt="Torta de Goiabada" onclick="openModal('assets/original_recipes/torta-de-goiabada.jpg','Torta de Goiabada')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="paes-e-massas-doces" id="card-31">
+  <div class="card-header" onclick="toggleCard(31)">
+    <div class="card-title-row">
+      <h3 class="card-name">Broa de Amendoim</h3>
+      <span class="cat-badge">Paes e Massas Doces</span>
+    </div>
+    <span class="chevron" id="chev-31">▼</span>
+  </div>
+  <div class="card-body" id="body-31" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 litro de amendoim torrado e moido</li>
+<li>1 litro de fuba</li>
+<li>1 litro de acucar</li>
+<li>2 litros de agua</li>
+<li>3 ovos</li>
+<li>2 colheres de margarina (ou 1/2 copo de gordura)</li>
+<li>1 1/2 colher de sopa de bicarbonato</li>
+<li>1 colher de sopa de fermento (po royal)</li>
+<li>1 xicara de farinha de trigo</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Queimar o acucar (caramelizar) e acrescentar a agua.</li>
+<li class="step"><span class="step-num">2</span>Escaldar o fuba junto com o amendoim nessa calda.</li>
+<li class="step"><span class="step-num">3</span>Adicionar a margarina/gordura e deixar a mistura descansar ate o dia seguinte.</li>
+<li class="step"><span class="step-num">4</span>No dia seguinte, acrescentar os ovos, o bicarbonato, o fermento e a farinha de trigo.</li>
+<li class="step"><span class="step-num">5</span>Misturar tudo bem e assar em forno preaquecido.</li>
+<p class="note">💡 Nota: Receita da tia Lourdes.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(31)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-31" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/broa-de-amendoim.jpg" class="thumb" alt="Broa de Amendoim" onclick="openModal('assets/original_recipes/broa-de-amendoim.jpg','Broa de Amendoim')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="paes-e-massas-doces" id="card-32">
+  <div class="card-header" onclick="toggleCard(32)">
+    <div class="card-title-row">
+      <h3 class="card-name">Broa de Fuba</h3>
+      <span class="cat-badge">Paes e Massas Doces</span>
+    </div>
+    <span class="chevron" id="chev-32">▼</span>
+  </div>
+  <div class="card-body" id="body-32" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 xicaras de leite</li>
+<li>1 xicara de fuba</li>
+<li>2 xicaras de farinha de trigo</li>
+<li>2 xicaras de acucar</li>
+<li>3 ovos</li>
+<li>2 colheres (sopa) de manteiga</li>
+<li>1 colher (sopa) de fermento</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bater as claras em neve e reservar.</li>
+<li class="step"><span class="step-num">2</span>Bater o acucar, a manteiga e as gemas ate ficar bem fino.</li>
+<li class="step"><span class="step-num">3</span>Acrescentar a farinha, o fuba e o leite, batendo bastante.</li>
+<li class="step"><span class="step-num">4</span>Acrescentar o fermento e misturar levemente.</li>
+<li class="step"><span class="step-num">5</span>Incorporar as claras em neve.</li>
+<li class="step"><span class="step-num">6</span>Assar em forno preaquecido em forma untada com manteiga e polvilhada com farinha.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(32)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-32" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/broa-de-fuba.jpg" class="thumb" alt="Broa de Fuba" onclick="openModal('assets/original_recipes/broa-de-fuba.jpg','Broa de Fuba')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="paes-e-massas-doces" id="card-33">
+  <div class="card-header" onclick="toggleCard(33)">
+    <div class="card-title-row">
+      <h3 class="card-name">Donuts</h3>
+      <span class="cat-badge">Paes e Massas Doces</span>
+    </div>
+    <span class="chevron" id="chev-33">▼</span>
+  </div>
+  <div class="card-body" id="body-33" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>4 xicaras de farinha de trigo</li>
+<li>1 xicara de acucar</li>
+<li>1/2 xicara de leite</li>
+<li>1 colher de sopa de fermento biologico</li>
+<li>2 colheres de manteiga sem sal</li>
+<li>2 ovos</li>
+<li>Baunilha a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar 3 xicaras de farinha com o acucar e o fermento.</li>
+<li class="step"><span class="step-num">2</span>Derreter a manteiga e adicionar junto com o leite e a baunilha.</li>
+<li class="step"><span class="step-num">3</span>Acrescentar os 2 ovos e misturar bem.</li>
+<li class="step"><span class="step-num">4</span>Ir adicionando o restante da farinha ate a massa nao grudar nas maos.</li>
+<li class="step"><span class="step-num">5</span>Abrir a massa, cortar os donuts e fritar em oleo quente ou assar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(33)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-33" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/donuts-torta-de-banana.jpg" class="thumb" alt="Donuts" onclick="openModal('assets/original_recipes/donuts-torta-de-banana.jpg','Donuts')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="paes-e-massas-doces" id="card-34">
+  <div class="card-header" onclick="toggleCard(34)">
+    <div class="card-title-row">
+      <h3 class="card-name">Gruste</h3>
+      <span class="cat-badge">Paes e Massas Doces</span>
+    </div>
+    <span class="chevron" id="chev-34">▼</span>
+  </div>
+  <div class="card-body" id="body-34" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>4 xicaras de farinha de trigo</li>
+<li>1 xicara de acucar</li>
+<li>1 colher de pinga (cachaca)</li>
+<li>1 colher de fermento</li>
+<li>3 ovos</li>
+<li>1 xicara de leite</li>
+<li>1 pitada de sal</li>
+<li>3/4 xicara de margarina</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar todos os ingredientes ate obter uma massa homogenea.</li>
+<li class="step"><span class="step-num">2</span>Abrir a massa e cortar em tiras.</li>
+<li class="step"><span class="step-num">3</span>Dar um corte no meio de cada tira.</li>
+<li class="step"><span class="step-num">4</span>Fritar em oleo quente ate dourar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(34)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-34" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/gruste.jpg" class="thumb" alt="Gruste" onclick="openModal('assets/original_recipes/gruste.jpg','Gruste')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="paes-e-massas-doces" id="card-35">
+  <div class="card-header" onclick="toggleCard(35)">
+    <div class="card-title-row">
+      <h3 class="card-name">Massa de Pao</h3>
+      <span class="cat-badge">Paes e Massas Doces</span>
+    </div>
+    <span class="chevron" id="chev-35">▼</span>
+  </div>
+  <div class="card-body" id="body-35" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 colher de cha de acucar</li>
+<li>30 g de fermento biologico fresco</li>
+<li>1 colher de cha de sal</li>
+<li>1/2 colher de azeite ou oleo</li>
+<li>3 colheres de sopa de agua morna</li>
+<li>1/2 kg de agua morna</li>
+<li>600 g de farinha de trigo</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Dissolver o fermento e o acucar na agua morna.</li>
+<li class="step"><span class="step-num">2</span>Misturar todos os ingredientes ate obter uma massa lisa e elastica.</li>
+<li class="step"><span class="step-num">3</span>Deixar crescer ate dobrar de volume.</li>
+<li class="step"><span class="step-num">4</span>Modelar e assar conforme o uso desejado.</li>
+<p class="note">💡 Nota: Receita manuscrita com partes de dificil leitura; alguns ingredientes podem estar incompletos.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(35)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-35" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/massa-de-pao.jpg" class="thumb" alt="Massa de Pao" onclick="openModal('assets/original_recipes/massa-de-pao.jpg','Massa de Pao')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="paes-e-massas-doces" id="card-36">
+  <div class="card-header" onclick="toggleCard(36)">
+    <div class="card-title-row">
+      <h3 class="card-name">Pao Caseiro</h3>
+      <span class="cat-badge">Paes e Massas Doces</span>
+    </div>
+    <span class="chevron" id="chev-36">▼</span>
+  </div>
+  <div class="card-body" id="body-36" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>3 kg de farinha de trigo</li>
+<li>Fermento, sal e demais ingredientes a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar os ingredientes ate obter uma massa homogenea.</li>
+<li class="step"><span class="step-num">2</span>Sovar bem, deixar crescer e assar.</li>
+<p class="note">💡 Nota: A receita original estava cortada na imagem, com apenas o titulo e o inicio dos ingredientes visiveis.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(36)">📸 Ver Foto (2)</button>
+    </div>
+    <div class="photo-strip" id="photos-36" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/pao-italiano-pao-caseiro.jpg" class="thumb" alt="Pao Caseiro" onclick="openModal('assets/original_recipes/pao-italiano-pao-caseiro.jpg','Pao Caseiro')" /><img src="assets/original_recipes/pao-italiano-pao-caseiro-2.jpg" class="thumb" alt="Pao Caseiro" onclick="openModal('assets/original_recipes/pao-italiano-pao-caseiro-2.jpg','Pao Caseiro')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="paes-e-massas-doces" id="card-37">
+  <div class="card-header" onclick="toggleCard(37)">
+    <div class="card-title-row">
+      <h3 class="card-name">Pao de Banana</h3>
+      <span class="cat-badge">Paes e Massas Doces</span>
+    </div>
+    <span class="chevron" id="chev-37">▼</span>
+  </div>
+  <div class="card-body" id="body-37" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 1/2 xicara de farinha de trigo</li>
+<li>1/2 xicara de maizena</li>
+<li>1/2 xicara de acucar</li>
+<li>1/2 xicara de margarina em temperatura ambiente</li>
+<li>2 ovos</li>
+<li>1 xicara de banana picada</li>
+<li>1 pitada de noz-moscada</li>
+<li>1 colher (cafe) de canela em po</li>
+<li>1 pitada de sal</li>
+<li>1 colher (sopa) de fermento em po</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar a farinha, a maizena, o fermento, a noz-moscada, a canela e o sal; reservar.</li>
+<li class="step"><span class="step-num">2</span>Bater no liquidificador os ovos, o acucar, a banana e a margarina.</li>
+<li class="step"><span class="step-num">3</span>Misturar o liquido com os ingredientes secos ate obter uma massa uniforme.</li>
+<li class="step"><span class="step-num">4</span>Assar em forma untada por aproximadamente 30 minutos a 180°C.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(37)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-37" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/pao-de-banana.jpg" class="thumb" alt="Pao de Banana" onclick="openModal('assets/original_recipes/pao-de-banana.jpg','Pao de Banana')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="paes-e-massas-doces" id="card-38">
+  <div class="card-header" onclick="toggleCard(38)">
+    <div class="card-title-row">
+      <h3 class="card-name">Pao Italiano</h3>
+      <span class="cat-badge">Paes e Massas Doces</span>
+    </div>
+    <span class="chevron" id="chev-38">▼</span>
+  </div>
+  <div class="card-body" id="body-38" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>30 g de fermento biologico fresco</li>
+<li>4 ovos</li>
+<li>1 xicara de oleo</li>
+<li>2 colheres de margarina</li>
+<li>1 colher de cha de sal</li>
+<li>Leite ate completar 1 litro no liquidificador</li>
+<li>Aproximadamente 1 kg de farinha de trigo</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bater no liquidificador os ovos, o oleo, a margarina, o sal e o leite ate completar 1 litro.</li>
+<li class="step"><span class="step-num">2</span>Adicionar o fermento e a farinha aos poucos, sovando ate obter uma massa elastica.</li>
+<li class="step"><span class="step-num">3</span>Deixar crescer ate dobrar de volume.</li>
+<li class="step"><span class="step-num">4</span>Modelar os paes, deixar crescer novamente.</li>
+<li class="step"><span class="step-num">5</span>Assar em forno preaquecido ate dourar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(38)">📸 Ver Foto (2)</button>
+    </div>
+    <div class="photo-strip" id="photos-38" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/pao-italiano-pao-caseiro.jpg" class="thumb" alt="Pao Italiano" onclick="openModal('assets/original_recipes/pao-italiano-pao-caseiro.jpg','Pao Italiano')" /><img src="assets/original_recipes/pao-italiano-pao-caseiro-2.jpg" class="thumb" alt="Pao Italiano" onclick="openModal('assets/original_recipes/pao-italiano-pao-caseiro-2.jpg','Pao Italiano')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="paes-e-massas-doces" id="card-39">
+  <div class="card-header" onclick="toggleCard(39)">
+    <div class="card-title-row">
+      <h3 class="card-name">Pao Liquidificador</h3>
+      <span class="cat-badge">Paes e Massas Doces</span>
+    </div>
+    <span class="chevron" id="chev-39">▼</span>
+  </div>
+  <div class="card-body" id="body-39" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 pacote de fermento biologico seco</li>
+<li>2 ovos</li>
+<li>50 g de queijo ralado</li>
+<li>2 copos de leite morno</li>
+<li>1 copo de oleo</li>
+<li>5 colheres de sopa de acucar</li>
+<li>2 colheres de sopa de margarina</li>
+<li>1/2 kg de farinha de trigo</li>
+<li>Sal a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bater no liquidificador todos os ingredientes exceto a farinha.</li>
+<li class="step"><span class="step-num">2</span>Transferir para uma tigela e incorporar a farinha, misturando bem.</li>
+<li class="step"><span class="step-num">3</span>Colocar em forma untada e polvilhada e deixar crescer por meia hora.</li>
+<li class="step"><span class="step-num">4</span>Assar por aproximadamente 30 minutos.</li>
+<li class="step"><span class="step-num">5</span>Quando assado, passar manteiga e polvilhar com queijo ralado.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(39)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-39" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/pao-liquidificador.jpg" class="thumb" alt="Pao Liquidificador" onclick="openModal('assets/original_recipes/pao-liquidificador.jpg','Pao Liquidificador')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="paes-e-massas-doces" id="card-40">
+  <div class="card-header" onclick="toggleCard(40)">
+    <div class="card-title-row">
+      <h3 class="card-name">Paoziho de Leite</h3>
+      <span class="cat-badge">Paes e Massas Doces</span>
+    </div>
+    <span class="chevron" id="chev-40">▼</span>
+  </div>
+  <div class="card-body" id="body-40" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>3 ovos</li>
+<li>2/3 copo de oleo</li>
+<li>2 copos de leite morno</li>
+<li>4 colheres de acucar</li>
+<li>1 colher de cha de sal</li>
+<li>30 g de fermento biologico fresco</li>
+<li>2 colheres de margarina</li>
+<li>Aproximadamente 1 kg de farinha de trigo</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Dissolver o fermento no leite morno com o acucar.</li>
+<li class="step"><span class="step-num">2</span>Acrescentar os ovos, o oleo, a margarina e o sal; misturar bem.</li>
+<li class="step"><span class="step-num">3</span>Ir adicionando a farinha ate obter uma massa lisa e que nao grude nas maos.</li>
+<li class="step"><span class="step-num">4</span>Deixar crescer ate dobrar de volume.</li>
+<li class="step"><span class="step-num">5</span>Modelar os paozihos, deixar crescer novamente.</li>
+<li class="step"><span class="step-num">6</span>Assar em forno preaquecido ate dourar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(40)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-40" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/paoziho-de-leite.jpg" class="thumb" alt="Paoziho de Leite" onclick="openModal('assets/original_recipes/paoziho-de-leite.jpg','Paoziho de Leite')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="paes-e-massas-doces" id="card-41">
+  <div class="card-header" onclick="toggleCard(41)">
+    <div class="card-title-row">
+      <h3 class="card-name">Rosca da Vo Tonha</h3>
+      <span class="cat-badge">Paes e Massas Doces</span>
+    </div>
+    <span class="chevron" id="chev-41">▼</span>
+  </div>
+  <div class="card-body" id="body-41" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>500 g de farinha de trigo</li>
+<li>2 ovos</li>
+<li>1/2 xicara de acucar</li>
+<li>1/2 xicara de leite morno</li>
+<li>50 g de manteiga</li>
+<li>30 g de fermento biologico fresco</li>
+<li>1 colher de cha de sal</li>
+<li>Raspas de limao ou laranja</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Dissolver o fermento no leite morno com o acucar.</li>
+<li class="step"><span class="step-num">2</span>Misturar com os ovos, a manteiga, o sal e as raspas.</li>
+<li class="step"><span class="step-num">3</span>Acrescentar a farinha aos poucos, sovando ate obter uma massa lisa.</li>
+<li class="step"><span class="step-num">4</span>Deixar crescer ate dobrar de volume.</li>
+<li class="step"><span class="step-num">5</span>Modelar a rosca, deixar crescer novamente.</li>
+<li class="step"><span class="step-num">6</span>Pincelar com gema e assar em forno preaquecido a 180°C.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-41" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-42">
+  <div class="card-header" onclick="toggleCard(42)">
+    <div class="card-title-row">
+      <h3 class="card-name">Rosquinha de Queijo</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-42">▼</span>
+  </div>
+  <div class="card-body" id="body-42" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>5 ovos</li>
+<li>1 copo de acucar</li>
+<li>1 copo de queijo ralado</li>
+<li>1 copo de leite</li>
+<li>1 copo de oleo (menos 2 dedos)</li>
+<li>1 colher de margarina cheia</li>
+<li>2 colheres de royal</li>
+<li>Mais de 1 kg de farinha de trigo</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar todos os ingredientes ate obter uma massa homogenea.</li>
+<li class="step"><span class="step-num">2</span>Modelar as rosquinhas e assar em forno preaquecido.</li>
+<li class="step"><span class="step-num">3</span>Depois de assadas, passar na calda de acucar refinado, adicionando canela se gostar.</li>
+<p class="note">💡 Nota: Receita anotada em caderno SENAR Mato Grosso.</p>
+<p>---</p>
+<p>## Sobremesas e Doces</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(42)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-42" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/rosquinha-de-queijo.jpg" class="thumb" alt="Rosquinha de Queijo" onclick="openModal('assets/original_recipes/rosquinha-de-queijo.jpg','Rosquinha de Queijo')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-43">
+  <div class="card-header" onclick="toggleCard(43)">
+    <div class="card-title-row">
+      <h3 class="card-name">Ameixas Recheadas</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-43">▼</span>
+  </div>
+  <div class="card-body" id="body-43" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>Ameixas pretas secas</li>
+<li>Creme de leite ou doce de leite para rechear</li>
+<li>Nozes ou amendoim a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Abrir as ameixas ao meio e retirar o caroco.</li>
+<li class="step"><span class="step-num">2</span>Rechear com creme de leite, doce de leite ou mistura de ambos.</li>
+<li class="step"><span class="step-num">3</span>Fechar ou deixar aberta, decorando com nozes se desejar.</li>
+<li class="step"><span class="step-num">4</span>Servir gelada.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-43" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-44">
+  <div class="card-header" onclick="toggleCard(44)">
+    <div class="card-title-row">
+      <h3 class="card-name">Arroz Doce</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-44">▼</span>
+  </div>
+  <div class="card-body" id="body-44" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 xicara (cha) de arroz</li>
+<li>1 litro de leite</li>
+<li>Canela em rama</li>
+<li>Cravo</li>
+<li>1 lata de leite condensado</li>
+<li>1 caixa de creme de leite</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Lavar o arroz e cozinhar no leite com a canela e o cravo em fogo baixo por 45 minutos, mexendo de vez em quando, ate ficar macio.</li>
+<li class="step"><span class="step-num">2</span>Se ainda estiver duro, acrescentar um pouco mais de leite.</li>
+<li class="step"><span class="step-num">3</span>Quando estiver macio, adicionar o leite condensado e mexer bem.</li>
+<li class="step"><span class="step-num">4</span>Retirar do fogo, aguardar 5 minutos e adicionar o creme de leite.</li>
+<li class="step"><span class="step-num">5</span>Servir quente ou frio, polvilhado com canela.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(44)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-44" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/arroz-doce.jpg" class="thumb" alt="Arroz Doce" onclick="openModal('assets/original_recipes/arroz-doce.jpg','Arroz Doce')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-45">
+  <div class="card-header" onclick="toggleCard(45)">
+    <div class="card-title-row">
+      <h3 class="card-name">Brigadeiro</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-45">▼</span>
+  </div>
+  <div class="card-body" id="body-45" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 lata de leite condensado</li>
+<li>3 colheres (sopa) de achocolatado</li>
+<li>1 colher (sopa) de margarina</li>
+<li>1/2 lata de leite</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar todos os ingredientes numa panela.</li>
+<li class="step"><span class="step-num">2</span>Levar ao fogo medio, mexendo sempre, por 15 minutos ate obter o ponto desejado.</li>
+<li class="step"><span class="step-num">3</span>Para enrolar: deixar esfriar, untar as maos com manteiga e enrolar. Passar no chocolate granulado.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(45)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-45" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/brigadeiro.jpg" class="thumb" alt="Brigadeiro" onclick="openModal('assets/original_recipes/brigadeiro.jpg','Brigadeiro')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-46">
+  <div class="card-header" onclick="toggleCard(46)">
+    <div class="card-title-row">
+      <h3 class="card-name">Brigadeiro Dietetico</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-46">▼</span>
+  </div>
+  <div class="card-body" id="body-46" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 lata de leite condensado light</li>
+<li>3 colheres de sopa de chocolate em po diet</li>
+<li>1 colher de margarina light</li>
+<li>Chocolate granulado diet para cobrir</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar o leite condensado, o chocolate e a margarina numa panela.</li>
+<li class="step"><span class="step-num">2</span>Levar ao fogo baixo, mexendo sempre, ate soltar do fundo.</li>
+<li class="step"><span class="step-num">3</span>Deixar esfriar, modelar em bolinhas e cobrir com granulado.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(46)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-46" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/brigadeiro.jpg" class="thumb" alt="Brigadeiro Dietetico" onclick="openModal('assets/original_recipes/brigadeiro.jpg','Brigadeiro Dietetico')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-47">
+  <div class="card-header" onclick="toggleCard(47)">
+    <div class="card-title-row">
+      <h3 class="card-name">Brownie de Chocolate</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-47">▼</span>
+  </div>
+  <div class="card-body" id="body-47" style="display:none">
+    <div class="recipe-content">
+      <p class="note">💡 Rendimento: 2 tabuleiros de 650 g (aprox. 1,3 kg de massa)</p>
+<p><strong>Ingredientes</strong></p>
+<ul>
+<li>225 g de manteiga</li>
+<li>400 g de acucar</li>
+<li>200 g de farinha de trigo</li>
+<li>4 ovos</li>
+<li>340 g de chocolate derretido em banho-maria</li>
+<li>4 colheres de sopa de cacau em po</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bater a manteiga com o acucar ate obter um creme (cremage).</li>
+<li class="step"><span class="step-num">2</span>Juntar os ovos batidos, misturando bem.</li>
+<li class="step"><span class="step-num">3</span>Acrescentar o chocolate derretido.</li>
+<li class="step"><span class="step-num">4</span>Por ultimo, adicionar a farinha misturada com o cacau.</li>
+<li class="step"><span class="step-num">5</span>Dividir em 2 tabuleiros de 650 g e assar a 180°C por 30 minutos.</li>
+<p class="note">💡 Nota: Para versao com cafe, adicionar 2 colheres de sopa de cafe soluvel a metade da massa. Decorar com gotas de chocolate meio amargo.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(47)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-47" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/brownie-de-chocolate.jpg" class="thumb" alt="Brownie de Chocolate" onclick="openModal('assets/original_recipes/brownie-de-chocolate.jpg','Brownie de Chocolate')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-48">
+  <div class="card-header" onclick="toggleCard(48)">
+    <div class="card-title-row">
+      <h3 class="card-name">Canoricole (Tia Helenice)</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-48">▼</span>
+  </div>
+  <div class="card-body" id="body-48" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 garrafa de mel</li>
+<li>50 g de cravo e canela</li>
+<li>1 copo de oleo</li>
+<li>1 copo de vinho branco</li>
+<li>1 copo de agua</li>
+<li>1 kg de farinha de trigo</li>
+<li>Ovos a gosto</li>
+<li>1 pitada de sal</li>
+<li>2 colheres de sopa de acucar</li>
+<li>2 colheres de sopa de fermento para pao (fresco)</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Ferver a agua, o oleo, o vinho, o cravo e a canela.</li>
+<li class="step"><span class="step-num">2</span>Quando ja ferveu um pouco, retirar do fogo e deixar ficar morno.</li>
+<li class="step"><span class="step-num">3</span>Colocar o fermento na bacia e juntar todos os ingredientes.</li>
+<li class="step"><span class="step-num">4</span>Misturar bem, modelar e fritar.</li>
+<li class="step"><span class="step-num">5</span>Passar no mel.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(48)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-48" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/canoricole.jpg" class="thumb" alt="Canoricole (Tia Helenice)" onclick="openModal('assets/original_recipes/canoricole.jpg','Canoricole (Tia Helenice)')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-49">
+  <div class="card-header" onclick="toggleCard(49)">
+    <div class="card-title-row">
+      <h3 class="card-name">Canoricole (Vo Cina)</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-49">▼</span>
+  </div>
+  <div class="card-body" id="body-49" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>4 colheres de fermento</li>
+<li>1 xicara de acucar</li>
+<li>4 copos de agua morna</li>
+<li>2 copos de vinho branco</li>
+<li>4 ovos</li>
+<li>2 xicaras de oleo</li>
+<li>Farinha de trigo ate dar o ponto de nhoque</li>
+<li>Canela a gosto</li>
+<li>Mel para finalizar</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Colocar farinha para fazer um mingau (mistura inicial).</li>
+<li class="step"><span class="step-num">2</span>Deixar crescer.</li>
+<li class="step"><span class="step-num">3</span>Depois de crescido, acrescentar o vinho branco.</li>
+<li class="step"><span class="step-num">4</span>Completar com farinha ate o ponto de nhoque.</li>
+<li class="step"><span class="step-num">5</span>Deixar crescer novamente.</li>
+<li class="step"><span class="step-num">6</span>Enrolar e cortar como nhoque.</li>
+<li class="step"><span class="step-num">7</span>Fritar e juntar ao mel com canela.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(49)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-49" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/canoricole.jpg" class="thumb" alt="Canoricole (Vo Cina)" onclick="openModal('assets/original_recipes/canoricole.jpg','Canoricole (Vo Cina)')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-50">
+  <div class="card-header" onclick="toggleCard(50)">
+    <div class="card-title-row">
+      <h3 class="card-name">Casquinhas — Amendoim Doce</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-50">▼</span>
+  </div>
+  <div class="card-body" id="body-50" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 xicaras (250 ml) de acucar</li>
+<li>2 xicaras (250 ml) de agua</li>
+<li>2 xicaras (250 ml) de amendoim torrado e sem pele</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar a agua com o acucar e levar ao fogo ate atingir o ponto de fio (calda).</li>
+<li class="step"><span class="step-num">2</span>Acrescentar o amendoim e mexer continuamente ate o acucar secar e cristalizar sobre os amendoins.</li>
+<li class="step"><span class="step-num">3</span>Retirar do fogo e deixar esfriar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-50" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-51">
+  <div class="card-header" onclick="toggleCard(51)">
+    <div class="card-title-row">
+      <h3 class="card-name">Cheesecake</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-51">▼</span>
+  </div>
+  <div class="card-body" id="body-51" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<p class="subtitle">Base</p>
+<ul>
+<li>200 g de bolacha maizena ou maria</li>
+<li>100 g de manteiga derretida</li>
+</ul>
+<p class="subtitle">Recheio</p>
+<ul>
+<li>300 g de cream cheese</li>
+<li>1 lata de leite condensado</li>
+<li>2 ovos</li>
+<li>Um pouco de baunilha</li>
+<li>Suco de meio limao</li>
+</ul>
+<p class="subtitle">Calda de Frutas Vermelhas</p>
+<ul>
+<li>Mirtilo e amoras</li>
+<li>Um pouco de agua</li>
+<li>2 colheres de sopa de acucar</li>
+<li>1 colher de sopa de maizena</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Triturar as bolachas, misturar com a manteiga derretida e forrar uma forma de fundo removivel.</li>
+<li class="step"><span class="step-num">2</span>Bater na batedeira o cream cheese com o leite condensado, a baunilha e por ultimo o suco de limao.</li>
+<li class="step"><span class="step-num">3</span>Colocar o creme sobre a base e assar por aproximadamente 30 minutos a 180°C.</li>
+<li class="step"><span class="step-num">4</span>Deixar esfriar completamente.</li>
+<li class="step"><span class="step-num">5</span>Para a calda: cozinhar as frutas com a agua, o acucar e a maizena ate encorpar.</li>
+<li class="step"><span class="step-num">6</span>Colocar a calda por cima do cheesecake frio.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(51)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-51" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/cheesecake.jpg" class="thumb" alt="Cheesecake" onclick="openModal('assets/original_recipes/cheesecake.jpg','Cheesecake')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-52">
+  <div class="card-header" onclick="toggleCard(52)">
+    <div class="card-title-row">
+      <h3 class="card-name">Creme da Tonha</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-52">▼</span>
+  </div>
+  <div class="card-body" id="body-52" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 lata de leite condensado</li>
+<li>1 lata de creme de leite</li>
+<li>1 litro de leite</li>
+<li>3 gemas</li>
+<li>2 colheres de maizena</li>
+<li>Baunilha a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Dissolver a maizena em um pouco de leite frio.</li>
+<li class="step"><span class="step-num">2</span>Misturar todos os ingredientes e levar ao fogo medio, mexendo sempre.</li>
+<li class="step"><span class="step-num">3</span>Cozinhar ate engrossar.</li>
+<li class="step"><span class="step-num">4</span>Servir frio, decorado com canela ou frutas.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-52" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-53">
+  <div class="card-header" onclick="toggleCard(53)">
+    <div class="card-title-row">
+      <h3 class="card-name">Creme de Papaia Light</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-53">▼</span>
+  </div>
+  <div class="card-body" id="body-53" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 mamao papaia medio</li>
+<li>1 copo de creme de leite light</li>
+<li>1 colher de sopa de acucar ou adocante</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Retirar as sementes do mamao e colher a polpa.</li>
+<li class="step"><span class="step-num">2</span>Bater no liquidificador com o creme de leite e o acucar ate obter um creme liso.</li>
+<li class="step"><span class="step-num">3</span>Servir gelado.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-53" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-54">
+  <div class="card-header" onclick="toggleCard(54)">
+    <div class="card-title-row">
+      <h3 class="card-name">Maria Mole</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-54">▼</span>
+  </div>
+  <div class="card-body" id="body-54" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 caixa de maria mole</li>
+<li>1 xicara de agua quente</li>
+<li>Coco ralado para cobrir</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Dissolver a maria mole na agua quente conforme instrucoes da embalagem.</li>
+<li class="step"><span class="step-num">2</span>Colocar em forminhas ou em uma forma grande.</li>
+<li class="step"><span class="step-num">3</span>Levar a geladeira ate firmar.</li>
+<li class="step"><span class="step-num">4</span>Desenformar e cobrir com coco ralado.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-54" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-55">
+  <div class="card-header" onclick="toggleCard(55)">
+    <div class="card-title-row">
+      <h3 class="card-name">Mousse de Maracuja</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-55">▼</span>
+  </div>
+  <div class="card-body" id="body-55" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 latas de leite moca</li>
+<li>2 latas de creme de leite</li>
+<li>1 garrafa de suco de maracuja Maguary</li>
+<li>500 ml de creme de leite fresco batido em chantilly</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bater no liquidificador o leite moca e o creme de leite.</li>
+<li class="step"><span class="step-num">2</span>Ir acrescentando o suco de maracuja aos poucos ate obter uma mistura homogenea e consistente.</li>
+<li class="step"><span class="step-num">3</span>Bater o creme de leite fresco em chantilly separadamente.</li>
+<li class="step"><span class="step-num">4</span>Em uma vasilha (tipo copa), colocar metade do mousse, uma camada de biscoito champanhe ou maisena esfarelado, depois o chantilly, e repetir as camadas.</li>
+<p class="note">💡 Nota: "Desculpe a letra" — nota original da autora da receita. O biscoito entre as camadas serve para reter a agua.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(55)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-55" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/mousse-de-maracuja.jpg" class="thumb" alt="Mousse de Maracuja" onclick="openModal('assets/original_recipes/mousse-de-maracuja.jpg','Mousse de Maracuja')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-56">
+  <div class="card-header" onclick="toggleCard(56)">
+    <div class="card-title-row">
+      <h3 class="card-name">Pave Rapido de Limao</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-56">▼</span>
+  </div>
+  <div class="card-body" id="body-56" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 pacote de biscoito maisena</li>
+<li>1 lata de leite condensado</li>
+<li>1/2 caixinha de creme de leite</li>
+<li>1/2 xicara de suco de limao</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar o leite condensado com o suco de limao.</li>
+<li class="step"><span class="step-num">2</span>Acrescentar o creme de leite e reservar por 10 minutos.</li>
+<li class="step"><span class="step-num">3</span>Em uma travessa, montar camadas finas de creme alternadas com biscoito.</li>
+<li class="step"><span class="step-num">4</span>Terminar com creme e decorar com raspas de limao.</li>
+<li class="step"><span class="step-num">5</span>Levar a geladeira por 6 horas antes de servir.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(56)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-56" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/pave-rapido-de-limao.jpg" class="thumb" alt="Pave Rapido de Limao" onclick="openModal('assets/original_recipes/pave-rapido-de-limao.jpg','Pave Rapido de Limao')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-57">
+  <div class="card-header" onclick="toggleCard(57)">
+    <div class="card-title-row">
+      <h3 class="card-name">Pe-de-moleque</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-57">▼</span>
+  </div>
+  <div class="card-body" id="body-57" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 pacote de amendoim</li>
+<li>2 1/2 xicaras de acucar</li>
+<li>100 g de manteiga (1/2 tablete)</li>
+<li>1 lata de leite condensado</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Colocar em uma panela o amendoim, o acucar e a manteiga.</li>
+<li class="step"><span class="step-num">2</span>Levar ao fogo, mexendo sempre, ate o amendoim comecar a ficar moreno.</li>
+<li class="step"><span class="step-num">3</span>Desligar o fogo, acrescentar o leite condensado e misturar.</li>
+<li class="step"><span class="step-num">4</span>Voltar ao fogo, mexendo sempre, ate atingir o ponto de brigadeiro.</li>
+<li class="step"><span class="step-num">5</span>Desligar o fogo, despejar sobre pedra de marmore untada.</li>
+<li class="step"><span class="step-num">6</span>Deixar esfriar e cortar em quadradinhos.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(57)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-57" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/pe-de-moleque.jpg" class="thumb" alt="Pe-de-moleque" onclick="openModal('assets/original_recipes/pe-de-moleque.jpg','Pe-de-moleque')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-58">
+  <div class="card-header" onclick="toggleCard(58)">
+    <div class="card-title-row">
+      <h3 class="card-name">Pudim de Leite Condensado da Vovo</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-58">▼</span>
+  </div>
+  <div class="card-body" id="body-58" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<p class="subtitle">Calda</p>
+<ul>
+<li>1 xicara (cha) de acucar</li>
+<li>1/2 xicara (cha) de agua quente</li>
+</ul>
+<p class="subtitle">Pudim</p>
+<ul>
+<li>1 lata de leite condensado</li>
+<li>2 medidas da lata de leite integral</li>
+<li>3 ovos</li>
+<li>1 colher de cha de essencia de baunilha (opcional)</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Em uma panela, derreter o acucar em fogo baixo ate ficar dourado.</li>
+<li class="step"><span class="step-num">2</span>Adicionar a agua quente aos poucos e mexer ate formar uma calda lisa.</li>
+<li class="step"><span class="step-num">3</span>Espalhar a calda em uma forma de pudim e reservar.</li>
+<li class="step"><span class="step-num">4</span>No liquidificador, bater o leite condensado, o leite, os ovos e a baunilha.</li>
+<li class="step"><span class="step-num">5</span>Passar a mistura pela peneira para um pudim mais liso.</li>
+<li class="step"><span class="step-num">6</span>Despejar na forma, cobrir com papel-aluminio.</li>
+<li class="step"><span class="step-num">7</span>Assar em banho-maria, em forno a 180°C, por cerca de 1 hora e 20 minutos.</li>
+<li class="step"><span class="step-num">8</span>Deixar esfriar e levar a geladeira por pelo menos 4 horas.</li>
+<li class="step"><span class="step-num">9</span>Desenformar com cuidado e servir gelado.</li>
+<p class="note">💡 Nota: Dica da vovo — asse em fogo baixo e peneire a mistura para um pudim bem liso.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(58)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-58" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/pudim-de-leite-condensado.jpg" class="thumb" alt="Pudim de Leite Condensado da Vovo" onclick="openModal('assets/original_recipes/pudim-de-leite-condensado.jpg','Pudim de Leite Condensado da Vovo')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-59">
+  <div class="card-header" onclick="toggleCard(59)">
+    <div class="card-title-row">
+      <h3 class="card-name">Pudim de Sorvete</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-59">▼</span>
+  </div>
+  <div class="card-body" id="body-59" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 lata de leite condensado</li>
+<li>1 lata de leite de vaca</li>
+<li>3 ovos</li>
+<li>1 lata de creme de leite</li>
+<li>6 colheres (sopa) de acucar</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Levar ao fogo o leite condensado, as 3 gemas, o leite de vaca e 1 colher (cha) de maizena, mexendo ate obter a consistencia de creme. Reservar.</li>
+<li class="step"><span class="step-num">2</span>Bater as 3 claras em neve com 6 colheres de acucar. Reservar.</li>
+<li class="step"><span class="step-num">3</span>Caramelizar uma forma de pudim.</li>
+<li class="step"><span class="step-num">4</span>Misturar o creme de leite com as claras batidas. Reservar.</li>
+<li class="step"><span class="step-num">5</span>Unir o merengue ao creme amarelo e colocar na forma caramelada.</li>
+<li class="step"><span class="step-num">6</span>Levar ao freezer.</li>
+<li class="step"><span class="step-num">7</span>Para servir, retirar do freezer um pouco antes. Se sobrar caramelo na forma, esquentar para dissolver e despejar por cima.</li>
+<p class="note">💡 Nota: Receita da Tia Sori.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(59)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-59" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/pudim-de-sorvete.jpg" class="thumb" alt="Pudim de Sorvete" onclick="openModal('assets/original_recipes/pudim-de-sorvete.jpg','Pudim de Sorvete')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-60">
+  <div class="card-header" onclick="toggleCard(60)">
+    <div class="card-title-row">
+      <h3 class="card-name">Quindim</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-60">▼</span>
+  </div>
+  <div class="card-body" id="body-60" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>12 gemas</li>
+<li>1 xicara de acucar</li>
+<li>1 xicara de coco ralado fresco</li>
+<li>1 colher de manteiga</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar as gemas com o acucar ate obter um creme.</li>
+<li class="step"><span class="step-num">2</span>Adicionar o coco ralado e a manteiga.</li>
+<li class="step"><span class="step-num">3</span>Untar forminhas com manteiga e acucar.</li>
+<li class="step"><span class="step-num">4</span>Distribuir a mistura nas forminhas.</li>
+<li class="step"><span class="step-num">5</span>Assar em banho-maria a 160°C ate firmar.</li>
+<li class="step"><span class="step-num">6</span>Deixar esfriar e desenformar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-60" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-61">
+  <div class="card-header" onclick="toggleCard(61)">
+    <div class="card-title-row">
+      <h3 class="card-name">Rabanada</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-61">▼</span>
+  </div>
+  <div class="card-body" id="body-61" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 baguete de pao frances ou 4 paes frances</li>
+<li>2 xicaras de leite</li>
+<li>1 lata de leite condensado</li>
+<li>3 ovos batidos</li>
+<li>Acucar e canela a gosto</li>
+<li>Oleo para fritar</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Cortar a baguete em fatias.</li>
+<li class="step"><span class="step-num">2</span>Misturar o leite com o leite condensado em um refratario.</li>
+<li class="step"><span class="step-num">3</span>Mergulhar as fatias de pao na mistura de leite ate que estejam bem molhadas.</li>
+<li class="step"><span class="step-num">4</span>Passar as fatias molhadas nos ovos batidos.</li>
+<li class="step"><span class="step-num">5</span>Fritar em oleo quente ate dourar dos dois lados.</li>
+<li class="step"><span class="step-num">6</span>Escorrer em papel-toalha e passar no acucar e canela.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(61)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-61" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/rabanada.jpg" class="thumb" alt="Rabanada" onclick="openModal('assets/original_recipes/rabanada.jpg','Rabanada')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="sobremesas-e-doces" id="card-62">
+  <div class="card-header" onclick="toggleCard(62)">
+    <div class="card-title-row">
+      <h3 class="card-name">Torta de Morango</h3>
+      <span class="cat-badge">🍮 Sobremesas e Doces</span>
+    </div>
+    <span class="chevron" id="chev-62">▼</span>
+  </div>
+  <div class="card-body" id="body-62" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<p class="subtitle">Pao de Lo</p>
+<ul>
+<li>4 ovos</li>
+<li>8 colheres de acucar</li>
+<li>2 colheres de farinha de trigo</li>
+<li>1 colher de cha de royal</li>
+<li>3 colheres de sopa de agua</li>
+</ul>
+<p class="subtitle">Recheio</p>
+<ul>
+<li>200 g de manteiga</li>
+<li>300 g de acucar peneirado</li>
+<li>1/2 lata de creme de leite com soro</li>
+<li>Morangos frescos</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Preparar o pao de lo: bater os ovos com o acucar, adicionar a farinha, o fermento e a agua. Assar em tabuleiro redondo.</li>
+<li class="step"><span class="step-num">2</span>Depois de frio, retirar a "tampa" do bolo e escavar o interior.</li>
+<li class="step"><span class="step-num">3</span>Misturar o miolo retirado com a manteiga, o acucar peneirado, o creme de leite e os morangos picados.</li>
+<li class="step"><span class="step-num">4</span>Rechear o bolo e tampar com a rodela reservada.</li>
+<li class="step"><span class="step-num">5</span>Cobrir com o restante do creme de leite (sem soro).</li>
+<li class="step"><span class="step-num">6</span>Enfeitar com morangos e gelar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(62)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-62" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/torta-de-morango.jpg" class="thumb" alt="Torta de Morango" onclick="openModal('assets/original_recipes/torta-de-morango.jpg','Torta de Morango')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="pratos-principais" id="card-63">
+  <div class="card-header" onclick="toggleCard(63)">
+    <div class="card-title-row">
+      <h3 class="card-name">Torta de Ricota</h3>
+      <span class="cat-badge">🍖 Pratos Principais</span>
+    </div>
+    <span class="chevron" id="chev-63">▼</span>
+  </div>
+  <div class="card-body" id="body-63" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<p class="subtitle">Massa</p>
+<ul>
+<li>Farinha de trigo quanto baste</li>
+<li>1 gema</li>
+<li>2 colheres de acucar</li>
+<li>200 g de manteiga</li>
+<li>1 pitada de sal</li>
+</ul>
+<p class="subtitle">Recheio</p>
+<ul>
+<li>1 ricota</li>
+<li>1 lata de creme de leite</li>
+<li>1 colher de manteiga</li>
+<li>1 gema</li>
+<li>4 colheres de acucar</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar a farinha com a gema, o acucar, a manteiga e o sal ate formar uma massa.</li>
+<li class="step"><span class="step-num">2</span>Para o recheio: misturar a ricota, o creme de leite, a manteiga, a gema e o acucar ate obter um creme liso.</li>
+<li class="step"><span class="step-num">3</span>Forrar a forma com a massa, acrescentar o recheio e levar ao forno.</li>
+<li class="step"><span class="step-num">4</span>Depois de tirar do forno, cobrir ainda quente com geleia de sua preferencia.</li>
+<p class="note">💡 Nota: Receita registrada em Quarta, 1979.</p>
+<p>---</p>
+<p>## Pratos Principais</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(63)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-63" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/torta-de-ricota.jpg" class="thumb" alt="Torta de Ricota" onclick="openModal('assets/original_recipes/torta-de-ricota.jpg','Torta de Ricota')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="pratos-principais" id="card-64">
+  <div class="card-header" onclick="toggleCard(64)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bacalhau ao Forno</h3>
+      <span class="cat-badge">🍖 Pratos Principais</span>
+    </div>
+    <span class="chevron" id="chev-64">▼</span>
+  </div>
+  <div class="card-body" id="body-64" style="display:none">
+    <div class="recipe-content">
+      <p class="note">💡 Rendimento: 4 porcoes • Calorias: 151 cal/porcao</p>
+<p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 colheres de cha de azeite</li>
+<li>1 cebola picada</li>
+<li>2 dentes de alho</li>
+<li>450 g de tomates picados</li>
+<li>1 colher de cha de pure de tomate</li>
+<li>4 colheres de sopa de vinho branco</li>
+<li>4 colheres de sopa de salsinha picada</li>
+<li>4 costeletas de bacalhau (dessalgadas)</li>
+<li>2 colheres de sopa de migalhas de pao</li>
+<li>Sal e pimenta a gosto</li>
+<li>Batatas novas cozidas (para acompanhar)</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Preaquecer o forno a 190°C.</li>
+<li class="step"><span class="step-num">2</span>Refogar a cebola no azeite por 5 minutos.</li>
+<li class="step"><span class="step-num">3</span>Acrescentar o alho, os tomates, o pure de tomate e o vinho. Ferver por 15 a 20 minutos.</li>
+<li class="step"><span class="step-num">4</span>Untar um refratario e colocar o bacalhau.</li>
+<li class="step"><span class="step-num">5</span>Cobrir com o molho, polvilhar com as migalhas de pao.</li>
+<li class="step"><span class="step-num">6</span>Assar por 20 a 30 minutos.</li>
+<li class="step"><span class="step-num">7</span>Servir com as batatas novas.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-64" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="pratos-principais" id="card-65">
+  <div class="card-header" onclick="toggleCard(65)">
+    <div class="card-title-row">
+      <h3 class="card-name">Cacarola Italiana</h3>
+      <span class="cat-badge">🍖 Pratos Principais</span>
+    </div>
+    <span class="chevron" id="chev-65">▼</span>
+  </div>
+  <div class="card-body" id="body-65" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>500 g de carne moida</li>
+<li>2 xicalas de arroz</li>
+<li>1 cebola picada</li>
+<li>2 dentes de alho</li>
+<li>2 tomates picados</li>
+<li>1 pimentao picado</li>
+<li>Azeite, sal e temperos a gosto</li>
+<li>Queijo parmesao ralado para gratinar</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Refogar a cebola e o alho no azeite.</li>
+<li class="step"><span class="step-num">2</span>Adicionar a carne moida e dourar bem.</li>
+<li class="step"><span class="step-num">3</span>Acrescentar os tomates e o pimentao; refogar mais.</li>
+<li class="step"><span class="step-num">4</span>Cozinhar o arroz separadamente.</li>
+<li class="step"><span class="step-num">5</span>Em um refratario, montar camadas de arroz e carne.</li>
+<li class="step"><span class="step-num">6</span>Cobrir com queijo ralado e gratinar no forno.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-65" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="pratos-principais" id="card-66">
+  <div class="card-header" onclick="toggleCard(66)">
+    <div class="card-title-row">
+      <h3 class="card-name">Lagarto Temperado</h3>
+      <span class="cat-badge">🍖 Pratos Principais</span>
+    </div>
+    <span class="chevron" id="chev-66">▼</span>
+  </div>
+  <div class="card-body" id="body-66" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 peca de lagarto de aproximadamente 1 kg</li>
+<li>2 cebolas em rodelas finas</li>
+<li>3 tomates maduros picados</li>
+<li>3 folhas de louro</li>
+<li>1 1/2 xicara de oleo</li>
+<li>1 xicara de azeitonas picadas</li>
+<li>1 xicara de picles</li>
+<li>Alho, sal e pimenta a gosto</li>
+<li>Molho ingles, catchup e mostarda a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Temperar a carne com alho, sal e limao. Deixar marinando por pelo menos 2 horas.</li>
+<li class="step"><span class="step-num">2</span>Tostar a carne em panela seca (sem oleo).</li>
+<li class="step"><span class="step-num">3</span>Apos tostar, levar ao forno sem cobrir por aproximadamente 45 minutos, pincelando com oleo.</li>
+<li class="step"><span class="step-num">4</span>Deixar esfriar e fatiar bem fino.</li>
+<li class="step"><span class="step-num">5</span>Para o molho: fritar a cebola com o louro no oleo. Acrescentar os tomates, o picles, as azeitonas e os temperos.</li>
+<li class="step"><span class="step-num">6</span>Deixar esfriar completamente e adicionar 1 1/2 xicara de vinagre.</li>
+<li class="step"><span class="step-num">7</span>Colocar as fatias de lagarto no molho frio.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(66)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-66" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/lagarto-temperado.jpg" class="thumb" alt="Lagarto Temperado" onclick="openModal('assets/original_recipes/lagarto-temperado.jpg','Lagarto Temperado')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="pratos-principais" id="card-67">
+  <div class="card-header" onclick="toggleCard(67)">
+    <div class="card-title-row">
+      <h3 class="card-name">Omelete ao Forno</h3>
+      <span class="cat-badge">🍖 Pratos Principais</span>
+    </div>
+    <span class="chevron" id="chev-67">▼</span>
+  </div>
+  <div class="card-body" id="body-67" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>4 ovos</li>
+<li>1/2 xicara de leite</li>
+<li>Sal e pimenta a gosto</li>
+<li>Recheio a escolha: queijo, presunto, legumes, ervas</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bater os ovos com o leite, o sal e a pimenta.</li>
+<li class="step"><span class="step-num">2</span>Adicionar o recheio escolhido.</li>
+<li class="step"><span class="step-num">3</span>Despejar em forma untada.</li>
+<li class="step"><span class="step-num">4</span>Assar em forno preaquecido a 180°C por cerca de 20 minutos.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-67" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="massas-e-pizzas" id="card-68">
+  <div class="card-header" onclick="toggleCard(68)">
+    <div class="card-title-row">
+      <h3 class="card-name">Strogonoff de Berinjelas</h3>
+      <span class="cat-badge">🍕 Massas e Pizzas</span>
+    </div>
+    <span class="chevron" id="chev-68">▼</span>
+  </div>
+  <div class="card-body" id="body-68" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 berinjelas grandes cortadas em cubos</li>
+<li>1 cebola picada</li>
+<li>2 dentes de alho</li>
+<li>1 lata de creme de leite</li>
+<li>1 caixinha de molho de tomate</li>
+<li>Sal, pimenta e temperos a gosto</li>
+<li>Oleo para refogar</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Refogar a cebola e o alho no oleo.</li>
+<li class="step"><span class="step-num">2</span>Adicionar as berinjelas e refogar ate ficarem macias.</li>
+<li class="step"><span class="step-num">3</span>Acrescentar o molho de tomate e deixar apurar.</li>
+<li class="step"><span class="step-num">4</span>Juntar o creme de leite e misturar bem.</li>
+<li class="step"><span class="step-num">5</span>Servir com arroz e batata palha.</li>
+<p>---</p>
+<p>## Massas e Pizzas</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-68" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="massas-e-pizzas" id="card-69">
+  <div class="card-header" onclick="toggleCard(69)">
+    <div class="card-title-row">
+      <h3 class="card-name">Massa de Pizza na Chapa</h3>
+      <span class="cat-badge">🍕 Massas e Pizzas</span>
+    </div>
+    <span class="chevron" id="chev-69">▼</span>
+  </div>
+  <div class="card-body" id="body-69" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 xicaras de farinha de trigo</li>
+<li>1 colher de sopa de fermento biologico seco</li>
+<li>1 colher de cha de sal</li>
+<li>1 colher de cha de acucar</li>
+<li>1 colher de sopa de oleo</li>
+<li>3/4 xicara de agua morna</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar a farinha, o fermento, o sal e o acucar.</li>
+<li class="step"><span class="step-num">2</span>Acrescentar o oleo e a agua morna, sovando ate obter uma massa lisa.</li>
+<li class="step"><span class="step-num">3</span>Deixar crescer por 30 minutos.</li>
+<li class="step"><span class="step-num">4</span>Abrir a massa fina e assar na chapa quente dos dois lados.</li>
+<li class="step"><span class="step-num">5</span>Adicionar o recheio e finalizar na chapa.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-69" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="massas-e-pizzas" id="card-70">
+  <div class="card-header" onclick="toggleCard(70)">
+    <div class="card-title-row">
+      <h3 class="card-name">Pizza Mineira</h3>
+      <span class="cat-badge">🍕 Massas e Pizzas</span>
+    </div>
+    <span class="chevron" id="chev-70">▼</span>
+  </div>
+  <div class="card-body" id="body-70" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<p class="subtitle">Massa</p>
+<ul>
+<li>2 xicaras de fuba</li>
+<li>1 xicara de farinha de trigo</li>
+<li>1 colher de sopa de fermento</li>
+<li>Sal a gosto</li>
+<li>Agua quente quanto baste para dar o ponto</li>
+</ul>
+<p class="subtitle">Cobertura</p>
+<ul>
+<li>Queijo minas, linguica, tomate, orégano e demais ingredientes a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar o fuba, a farinha e o sal.</li>
+<li class="step"><span class="step-num">2</span>Acrescentar agua quente aos poucos ate obter uma massa que abra bem.</li>
+<li class="step"><span class="step-num">3</span>Adicionar o fermento e misturar.</li>
+<li class="step"><span class="step-num">4</span>Abrir a massa numa forma untada.</li>
+<li class="step"><span class="step-num">5</span>Cobrir com os ingredientes escolhidos.</li>
+<li class="step"><span class="step-num">6</span>Assar em forno quente preaquecido ate dourar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-70" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="massas-e-pizzas" id="card-71">
+  <div class="card-header" onclick="toggleCard(71)">
+    <div class="card-title-row">
+      <h3 class="card-name">Pizza Rapida</h3>
+      <span class="cat-badge">🍕 Massas e Pizzas</span>
+    </div>
+    <span class="chevron" id="chev-71">▼</span>
+  </div>
+  <div class="card-body" id="body-71" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<p class="subtitle">Massa</p>
+<ul>
+<li>2 xicaras de farinha de trigo</li>
+<li>1 colher de sopa de fermento quimico (royal)</li>
+<li>1 colher de cha de sal</li>
+<li>2 ovos</li>
+<li>1/2 xicara de leite</li>
+<li>2 colheres de sopa de oleo</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar todos os ingredientes da massa ate obter uma consistencia homogenea.</li>
+<li class="step"><span class="step-num">2</span>Espalhar em forma untada.</li>
+<li class="step"><span class="step-num">3</span>Cobrir com molho de tomate, queijo e ingredientes a gosto.</li>
+<li class="step"><span class="step-num">4</span>Assar em forno preaquecido a 200°C ate dourar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-71" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="saladas-e-acompanhamentos" id="card-72">
+  <div class="card-header" onclick="toggleCard(72)">
+    <div class="card-title-row">
+      <h3 class="card-name">Receita de Massa para Empada, Empadao e Tortas Salgadas</h3>
+      <span class="cat-badge">🥗 Saladas e Acompanhamentos</span>
+    </div>
+    <span class="chevron" id="chev-72">▼</span>
+  </div>
+  <div class="card-body" id="body-72" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>3 xicaras de farinha de trigo</li>
+<li>1 colher (sobremesa) rasa de Fermento Royal</li>
+<li>Sal a gosto</li>
+<li>4 ovos inteiros</li>
+<li>200 g de margarina culinaria</li>
+<li>1 ovo para pincelar</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Em uma tigela, colocar a farinha, o sal e o fermento peneirados e misturar com um garfo.</li>
+<li class="step"><span class="step-num">2</span>Abrir um buraco no centro e acrescentar os ovos (batidos separadamente) e a margarina.</li>
+<li class="step"><span class="step-num">3</span>Misturar com o garfo, trazendo a farinha para o centro.</li>
+<li class="step"><span class="step-num">4</span>Usar as maos para misturar bem.</li>
+<li class="step"><span class="step-num">5</span>Transferir para uma superficie enfarinhada e sovar, acrescentando farinha aos poucos ate desprender das maos.</li>
+<li class="step"><span class="step-num">6</span>Deixar a massa descansar por 30 minutos.</li>
+<li class="step"><span class="step-num">7</span>Usar com o recheio de sua preferencia!</li>
+<li class="step"><span class="step-num">8</span>Pincelar com o ovo batido antes de assar.</li>
+<p>---</p>
+<p>## Saladas e Acompanhamentos</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-72" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="saladas-e-acompanhamentos" id="card-73">
+  <div class="card-header" onclick="toggleCard(73)">
+    <div class="card-title-row">
+      <h3 class="card-name">Batatas &quot;Fritas&quot; no Forno</h3>
+      <span class="cat-badge">🥗 Saladas e Acompanhamentos</span>
+    </div>
+    <span class="chevron" id="chev-73">▼</span>
+  </div>
+  <div class="card-body" id="body-73" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>4 batatas medias</li>
+<li>2 colheres de sopa de azeite</li>
+<li>Sal, pimenta e temperos a gosto</li>
+</ul>
+<p class="subtitle">Modo 1 — Classico</p>
+<li class="step"><span class="step-num">1</span>Descascar e cortar as batatas em palitos.</li>
+<li class="step"><span class="step-num">2</span>Temperar com azeite, sal e pimenta.</li>
+<li class="step"><span class="step-num">3</span>Espalhar em forma sem sobrepor.</li>
+<li class="step"><span class="step-num">4</span>Assar a 200°C por 30-40 minutos, virando na metade.</li>
+<p class="subtitle">Modo 2 — com Casca</p>
+<li class="step"><span class="step-num">1</span>Lavar bem as batatas e cortar com casca em palitos.</li>
+<li class="step"><span class="step-num">2</span>Temperar e assar conforme o Modo 1.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-73" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="saladas-e-acompanhamentos" id="card-74">
+  <div class="card-header" onclick="toggleCard(74)">
+    <div class="card-title-row">
+      <h3 class="card-name">Berinjela para Comer com Pao</h3>
+      <span class="cat-badge">🥗 Saladas e Acompanhamentos</span>
+    </div>
+    <span class="chevron" id="chev-74">▼</span>
+  </div>
+  <div class="card-body" id="body-74" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>3 berinjelas</li>
+<li>Sal e vinagre para deixar de molho</li>
+<li>3 pimentoes (vermelhos e verdes) cortados em tiras</li>
+<li>2 cebolas grandes</li>
+<li>Cheiro-verde</li>
+<li>Pimenta vermelha</li>
+<li>1 copo de vinagre</li>
+<li>1 copo de oleo com azeite</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Descascar as berinjelas, picar em palitos e deixar de molho em agua com sal e vinagre.</li>
+<li class="step"><span class="step-num">2</span>Numa panela, colocar os pimentoes, as cebolas, o cheiro-verde, o sal, a pimenta, o vinagre e o oleo.</li>
+<li class="step"><span class="step-num">3</span>Refogar ate murchar.</li>
+<li class="step"><span class="step-num">4</span>Acrescentar a berinjela escorrida e deixar refogar mais um pouco.</li>
+<li class="step"><span class="step-num">5</span>Servir fria com paes.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-74" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="saladas-e-acompanhamentos" id="card-75">
+  <div class="card-header" onclick="toggleCard(75)">
+    <div class="card-title-row">
+      <h3 class="card-name">Berinjela Recheada</h3>
+      <span class="cat-badge">🥗 Saladas e Acompanhamentos</span>
+    </div>
+    <span class="chevron" id="chev-75">▼</span>
+  </div>
+  <div class="card-body" id="body-75" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 berinjelas medias</li>
+<li>200 g de carne moida</li>
+<li>1 cebola picada</li>
+<li>2 tomates picados</li>
+<li>Sal, pimenta e temperos a gosto</li>
+<li>Queijo ralado para gratinar</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Cortar as berinjelas ao meio e cozinhar levemente em agua com sal.</li>
+<li class="step"><span class="step-num">2</span>Retirar a polpa com uma colher, deixando as cascas intactas.</li>
+<li class="step"><span class="step-num">3</span>Refogar a cebola, adicionar a carne moida e os tomates.</li>
+<li class="step"><span class="step-num">4</span>Misturar a polpa das berinjelas ao refogado.</li>
+<li class="step"><span class="step-num">5</span>Rechear as cascas, cobrir com queijo ralado.</li>
+<li class="step"><span class="step-num">6</span>Assar a 180°C ate gratinar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(75)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-75" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/berinjela-recheada.jpg" class="thumb" alt="Berinjela Recheada" onclick="openModal('assets/original_recipes/berinjela-recheada.jpg','Berinjela Recheada')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="saladas-e-acompanhamentos" id="card-76">
+  <div class="card-header" onclick="toggleCard(76)">
+    <div class="card-title-row">
+      <h3 class="card-name">Farofa de Cenoura, Bacon e Azeitona</h3>
+      <span class="cat-badge">🥗 Saladas e Acompanhamentos</span>
+    </div>
+    <span class="chevron" id="chev-76">▼</span>
+  </div>
+  <div class="card-body" id="body-76" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 cenouras raladas</li>
+<li>100 g de bacon picado</li>
+<li>1 xicara de azeitonas picadas</li>
+<li>2 xicaras de farinha de mandioca</li>
+<li>Azeite, sal e temperos a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Fritar o bacon ate ficar crocante.</li>
+<li class="step"><span class="step-num">2</span>Adicionar a cenoura e refogar brevemente.</li>
+<li class="step"><span class="step-num">3</span>Acrescentar a farinha de mandioca e misturar bem.</li>
+<li class="step"><span class="step-num">4</span>Juntar as azeitonas, acertar o sal e servir.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-76" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="saladas-e-acompanhamentos" id="card-77">
+  <div class="card-header" onclick="toggleCard(77)">
+    <div class="card-title-row">
+      <h3 class="card-name">Farofa Fria de Tomates e Azeitonas</h3>
+      <span class="cat-badge">🥗 Saladas e Acompanhamentos</span>
+    </div>
+    <span class="chevron" id="chev-77">▼</span>
+  </div>
+  <div class="card-body" id="body-77" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 tomates sem pele e sem sementes, picados</li>
+<li>1 xicara de azeitonas picadas</li>
+<li>2 xicaras de farinha de mandioca</li>
+<li>Azeite, sal e ervas a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar os tomates e as azeitonas com a farinha de mandioca.</li>
+<li class="step"><span class="step-num">2</span>Temperar com azeite, sal e ervas.</li>
+<li class="step"><span class="step-num">3</span>Servir fria como acompanhamento.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-77" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="saladas-e-acompanhamentos" id="card-78">
+  <div class="card-header" onclick="toggleCard(78)">
+    <div class="card-title-row">
+      <h3 class="card-name">Legumes ao Queijo</h3>
+      <span class="cat-badge">🥗 Saladas e Acompanhamentos</span>
+    </div>
+    <span class="chevron" id="chev-78">▼</span>
+  </div>
+  <div class="card-body" id="body-78" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>Legumes variados (chuchu, cenoura, vagem, brocolis etc.)</li>
+<li>Molho bechamel (ver receita)</li>
+<li>Queijo parmesao ralado</li>
+<li>Sal e pimenta</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Cozinhar os legumes no vapor ate ficarem al dente.</li>
+<li class="step"><span class="step-num">2</span>Dispor em refratario untado.</li>
+<li class="step"><span class="step-num">3</span>Cobrir com molho bechamel.</li>
+<li class="step"><span class="step-num">4</span>Polvilhar com queijo parmesao.</li>
+<li class="step"><span class="step-num">5</span>Gratinar no forno a 200°C.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-78" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="saladas-e-acompanhamentos" id="card-79">
+  <div class="card-header" onclick="toggleCard(79)">
+    <div class="card-title-row">
+      <h3 class="card-name">Salada de Macarrao e Atum</h3>
+      <span class="cat-badge">🥗 Saladas e Acompanhamentos</span>
+    </div>
+    <span class="chevron" id="chev-79">▼</span>
+  </div>
+  <div class="card-body" id="body-79" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>300 g de macarrao (parafuso ou penne) cozido al dente</li>
+<li>2 latas de atum escorrido</li>
+<li>1 cebola picada</li>
+<li>2 tomates picados</li>
+<li>Azeitonas, ervilhas e milho a gosto</li>
+<li>Maionese e temperos a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar o macarrao frio com o atum e os demais ingredientes.</li>
+<li class="step"><span class="step-num">2</span>Temperar com maionese, sal e pimenta.</li>
+<li class="step"><span class="step-num">3</span>Servir gelado.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-79" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="saladas-e-acompanhamentos" id="card-80">
+  <div class="card-header" onclick="toggleCard(80)">
+    <div class="card-title-row">
+      <h3 class="card-name">Salpicao Dona Eloat</h3>
+      <span class="cat-badge">🥗 Saladas e Acompanhamentos</span>
+    </div>
+    <span class="chevron" id="chev-80">▼</span>
+  </div>
+  <div class="card-body" id="body-80" style="display:none">
+    <div class="recipe-content">
+      <p class="note">💡 Rendimento: aproximadamente 35 porcoes</p>
+<p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 kg de peito de frango desfiado</li>
+<li>1 queijo minas cortado em cubinhos</li>
+<li>1 kg de vagem cozida e cortada</li>
+<li>1 kg de cenoura cozida e cortada</li>
+<li>3 macas verdes sem casca, cortadas</li>
+<li>2 latas de milho</li>
+<li>2 latas de ervilha</li>
+<li>1 pimentao amarelo</li>
+<li>1 pimentao vermelho</li>
+<li>Tempero verde</li>
+<li>1 cebola de cabeca ralada</li>
+<li>2 dentes de alho ralado</li>
+<li>1 vidro de Hellmanns (500 g)</li>
+<li>1 lata de creme de leite ou 2 caixinhas</li>
+<li>100 g de uva passa</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Cortar todos os ingredientes em cubinhos.</li>
+<li class="step"><span class="step-num">2</span>Misturar tudo em uma tigela grande.</li>
+<li class="step"><span class="step-num">3</span>Temperar com a maionese, o creme de leite, a cebola, o alho e o tempero verde.</li>
+<li class="step"><span class="step-num">4</span>Ajustar o sal e refrigerar ate a hora de servir.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(80)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-80" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/salpicao.jpg" class="thumb" alt="Salpicao Dona Eloat" onclick="openModal('assets/original_recipes/salpicao.jpg','Salpicao Dona Eloat')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="saladas-e-acompanhamentos" id="card-81">
+  <div class="card-header" onclick="toggleCard(81)">
+    <div class="card-title-row">
+      <h3 class="card-name">Surpresa de Atum</h3>
+      <span class="cat-badge">🥗 Saladas e Acompanhamentos</span>
+    </div>
+    <span class="chevron" id="chev-81">▼</span>
+  </div>
+  <div class="card-body" id="body-81" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 latas de atum</li>
+<li>1 caixa de creme de leite</li>
+<li>Temperos a gosto (limao, salsa, pimenta)</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Escorrer bem o atum.</li>
+<li class="step"><span class="step-num">2</span>Misturar com o creme de leite e os temperos.</li>
+<li class="step"><span class="step-num">3</span>Servir frio sobre torradas ou como recheio de tomates.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-81" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="molhos-e-pastas" id="card-82">
+  <div class="card-header" onclick="toggleCard(82)">
+    <div class="card-title-row">
+      <h3 class="card-name">Tomates Recheados</h3>
+      <span class="cat-badge">🫙 Molhos e Pastas</span>
+    </div>
+    <span class="chevron" id="chev-82">▼</span>
+  </div>
+  <div class="card-body" id="body-82" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>6 tomates firmes</li>
+<li>200 g de frango desfiado ou atum</li>
+<li>Cream cheese ou creme de leite</li>
+<li>Sal, pimenta e ervas a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Cortar a tampa dos tomates e retirar o miolo.</li>
+<li class="step"><span class="step-num">2</span>Misturar o frango ou atum com o creme e os temperos.</li>
+<li class="step"><span class="step-num">3</span>Rechear os tomates.</li>
+<li class="step"><span class="step-num">4</span>Levar a geladeira ou servir imediatamente.</li>
+<p>---</p>
+<p>## Molhos e Pastas</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-82" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="molhos-e-pastas" id="card-83">
+  <div class="card-header" onclick="toggleCard(83)">
+    <div class="card-title-row">
+      <h3 class="card-name">Baba de Moca</h3>
+      <span class="cat-badge">🫙 Molhos e Pastas</span>
+    </div>
+    <span class="chevron" id="chev-83">▼</span>
+  </div>
+  <div class="card-body" id="body-83" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>250 g de acucar refinado</li>
+<li>1 xicara (cha) de agua</li>
+<li>1 garrafa (200 ml) de leite de coco</li>
+<li>3 gemas</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar o acucar com a agua e levar ao fogo ate dar o ponto de pasta.</li>
+<li class="step"><span class="step-num">2</span>Retirar do fogo e acrescentar o leite de coco e as gemas.</li>
+<li class="step"><span class="step-num">3</span>Voltar ao fogo, mexendo ate engrossar.</li>
+<li class="step"><span class="step-num">4</span>Usar como cobertura de bolos.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-83" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="molhos-e-pastas" id="card-84">
+  <div class="card-header" onclick="toggleCard(84)">
+    <div class="card-title-row">
+      <h3 class="card-name">Cobertura de Marshmallow</h3>
+      <span class="cat-badge">🫙 Molhos e Pastas</span>
+    </div>
+    <span class="chevron" id="chev-84">▼</span>
+  </div>
+  <div class="card-body" id="body-84" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 claras</li>
+<li>1 xicara de acucar</li>
+<li>1/4 xicara de agua</li>
+<li>1 colher de cha de baunilha</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Levar o acucar e a agua ao fogo ate dar o ponto de fio.</li>
+<li class="step"><span class="step-num">2</span>Bater as claras em neve firme.</li>
+<li class="step"><span class="step-num">3</span>Despejar a calda quente sobre as claras, batendo continuamente ate esfriar e obter uma consistencia de marshmallow.</li>
+<li class="step"><span class="step-num">4</span>Adicionar a baunilha e usar imediatamente.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-84" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="molhos-e-pastas" id="card-85">
+  <div class="card-header" onclick="toggleCard(85)">
+    <div class="card-title-row">
+      <h3 class="card-name">Ganache de Chocolate</h3>
+      <span class="cat-badge">🫙 Molhos e Pastas</span>
+    </div>
+    <span class="chevron" id="chev-85">▼</span>
+  </div>
+  <div class="card-body" id="body-85" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>250 g de chocolate ao leite picado</li>
+<li>1 xicara de creme de leite</li>
+<li>1 colher de sopa de rum</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Aquecer o creme de leite ate comecar a borbulhar.</li>
+<li class="step"><span class="step-num">2</span>Verter sobre o chocolate picado e misturar ate derreter completamente.</li>
+<li class="step"><span class="step-num">3</span>Adicionar o rum e misturar.</li>
+<li class="step"><span class="step-num">4</span>Deixar esfriar ate atingir a consistencia desejada para cobertura ou recheio.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(85)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-85" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/cueca-virada-ganache.jpg" class="thumb" alt="Ganache de Chocolate" onclick="openModal('assets/original_recipes/cueca-virada-ganache.jpg','Ganache de Chocolate')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="molhos-e-pastas" id="card-86">
+  <div class="card-header" onclick="toggleCard(86)">
+    <div class="card-title-row">
+      <h3 class="card-name">Molho Basico de Tomates</h3>
+      <span class="cat-badge">🫙 Molhos e Pastas</span>
+    </div>
+    <span class="chevron" id="chev-86">▼</span>
+  </div>
+  <div class="card-body" id="body-86" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 kg de tomates maduros</li>
+<li>1 cebola picada</li>
+<li>2 dentes de alho</li>
+<li>Azeite, sal, acucar e oregano a gosto</li>
+<li>Manjericao fresco (opcional)</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Refogar a cebola e o alho no azeite.</li>
+<li class="step"><span class="step-num">2</span>Adicionar os tomates picados e cozinhar em fogo baixo por 30 minutos.</li>
+<li class="step"><span class="step-num">3</span>Temperar com sal, uma pitada de acucar e oregano.</li>
+<li class="step"><span class="step-num">4</span>Usar com massas, pizzas ou como base de outros pratos.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(86)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-86" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/pate-de-tomate-seco.jpg" class="thumb" alt="Molho Basico de Tomates" onclick="openModal('assets/original_recipes/pate-de-tomate-seco.jpg','Molho Basico de Tomates')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="molhos-e-pastas" id="card-87">
+  <div class="card-header" onclick="toggleCard(87)">
+    <div class="card-title-row">
+      <h3 class="card-name">Molho Bechamel</h3>
+      <span class="cat-badge">🫙 Molhos e Pastas</span>
+    </div>
+    <span class="chevron" id="chev-87">▼</span>
+  </div>
+  <div class="card-body" id="body-87" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 xicara (cha) de margarina</li>
+<li>1 xicara (cha) de farinha de trigo</li>
+<li>1 litro de leite quente</li>
+<li>2 ovos batidos</li>
+<li>2 tabletes de caldo de galinha esfarelado</li>
+<li>Sal a gosto</li>
+<li>Pimenta-do-reino a gosto</li>
+<li>1 xicara (cha) de queijo parmesao ralado</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Derreter a margarina em fogo baixo.</li>
+<li class="step"><span class="step-num">2</span>Acrescentar a farinha e mexer ate dissolver.</li>
+<li class="step"><span class="step-num">3</span>Adicionar o leite quente aos poucos, mexendo ate virar uma pasta.</li>
+<li class="step"><span class="step-num">4</span>Colocar os ovos batidos e o caldo de galinha esfarelado.</li>
+<li class="step"><span class="step-num">5</span>Continuar mexendo ate engrossar.</li>
+<li class="step"><span class="step-num">6</span>Temperar com sal e pimenta-do-reino.</li>
+<li class="step"><span class="step-num">7</span>Adicionar o queijo ralado e desligar o fogo.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(87)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-87" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/molho-bechamel.jpg" class="thumb" alt="Molho Bechamel" onclick="openModal('assets/original_recipes/molho-bechamel.jpg','Molho Bechamel')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="molhos-e-pastas" id="card-88">
+  <div class="card-header" onclick="toggleCard(88)">
+    <div class="card-title-row">
+      <h3 class="card-name">Pasta de Alho (3 versoes)</h3>
+      <span class="cat-badge">🫙 Molhos e Pastas</span>
+    </div>
+    <span class="chevron" id="chev-88">▼</span>
+  </div>
+  <div class="card-body" id="body-88" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Versao 1 — Classica</strong></p>
+<ul>
+<li>1 cabeca de alho assado</li>
+<li>2 colheres de sopa de azeite</li>
+<li>Sal a gosto</li>
+</ul>
+<p>Espremer o alho assado e misturar com azeite e sal.</p>
+<p><strong>Versao 2 — com Cream Cheese</strong></p>
+<ul>
+<li>1 cabeca de alho assado</li>
+<li>100 g de cream cheese</li>
+<li>Sal e ervas a gosto</li>
+</ul>
+<p>Misturar o alho espremido ao cream cheese e temperar.</p>
+<p><strong>Versao 3 — com Manteiga</strong></p>
+<ul>
+<li>6 dentes de alho crus amassados</li>
+<li>100 g de manteiga em temperatura ambiente</li>
+<li>Salsinha picada e sal a gosto</li>
+</ul>
+<p>Misturar todos os ingredientes e usar como pasta de pao.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-88" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="lanches-e-sanduiches" id="card-89">
+  <div class="card-header" onclick="toggleCard(89)">
+    <div class="card-title-row">
+      <h3 class="card-name">Pate de Tomate Seco</h3>
+      <span class="cat-badge">🥪 Lanches e Sanduíches</span>
+    </div>
+    <span class="chevron" id="chev-89">▼</span>
+  </div>
+  <div class="card-body" id="body-89" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 1/2 xicaras (cha) de molho de tomate</li>
+<li>100 g de tomate seco picado</li>
+<li>200 g de ricota amassada</li>
+<li>1 colher (sopa) de cebola picada</li>
+<li>2 dentes de alho picados</li>
+<li>Sal e molho de pimenta a gosto</li>
+<li>2 colheres (sopa) de azeite</li>
+<li>Oregano fresco para salpicar</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bater todos os ingredientes no liquidificador ate obter um creme homogeneo.</li>
+<li class="step"><span class="step-num">2</span>Conservar na geladeira ate o momento de servir.</li>
+<li class="step"><span class="step-num">3</span>Salpicar oregano fresco na hora de servir.</li>
+<p>---</p>
+<p>## Lanches e Sanduiches</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-89" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="lanches-e-sanduiches" id="card-90">
+  <div class="card-header" onclick="toggleCard(90)">
+    <div class="card-title-row">
+      <h3 class="card-name">Beirute de Palmito</h3>
+      <span class="cat-badge">🥪 Lanches e Sanduíches</span>
+    </div>
+    <span class="chevron" id="chev-90">▼</span>
+  </div>
+  <div class="card-body" id="body-90" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>Paes de forma ou pao arabico</li>
+<li>1 lata de palmito escorrido e picado</li>
+<li>Maionese, tomate, alface e temperos a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar o palmito com maionese e temperos.</li>
+<li class="step"><span class="step-num">2</span>Montar os sanduiches com alface, tomate e recheio de palmito.</li>
+<li class="step"><span class="step-num">3</span>Servir imediatamente ou embrulhar para viagem.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-90" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="lanches-e-sanduiches" id="card-91">
+  <div class="card-header" onclick="toggleCard(91)">
+    <div class="card-title-row">
+      <h3 class="card-name">Biscoito Quebra-quebra</h3>
+      <span class="cat-badge">🥪 Lanches e Sanduíches</span>
+    </div>
+    <span class="chevron" id="chev-91">▼</span>
+  </div>
+  <div class="card-body" id="body-91" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>800 g de amido de milho</li>
+<li>1 media de margarina</li>
+<li>2 medias de acucar refinado</li>
+<li>4 ovos</li>
+<li>1 colher de fermento</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Misturar todos os ingredientes; a massa ficara seca no inicio.</li>
+<li class="step"><span class="step-num">2</span>Nao acrescentar nada — a margarina vai amolecer a massa com o sovamento.</li>
+<li class="step"><span class="step-num">3</span>Enrolar em pequenos bastonetes do tamanho de um dedo.</li>
+<li class="step"><span class="step-num">4</span>Colocar em tabuleiro untado.</li>
+<li class="step"><span class="step-num">5</span>Assar em forno quente (sem preaquecer) ate dourar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(91)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-91" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/biscoito-quebra-quebra.jpg" class="thumb" alt="Biscoito Quebra-quebra" onclick="openModal('assets/original_recipes/biscoito-quebra-quebra.jpg','Biscoito Quebra-quebra')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="lanches-e-sanduiches" id="card-92">
+  <div class="card-header" onclick="toggleCard(92)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolinhos de Laranja</h3>
+      <span class="cat-badge">🥪 Lanches e Sanduíches</span>
+    </div>
+    <span class="chevron" id="chev-92">▼</span>
+  </div>
+  <div class="card-body" id="body-92" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 xicara de acucar</li>
+<li>3 xicaras de farinha de trigo</li>
+<li>3 colheres de cha de fermento</li>
+<li>1/2 colher de cha de bicarbonato</li>
+<li>1/2 colher de cha de sal</li>
+<li>3 ovos</li>
+<li>1 colher (sopa) de oleo</li>
+<li>1 xicara de suco de laranja</li>
+<li>1 colher (sopa) de casca de laranja ralada</li>
+<li>Oleo para fritar</li>
+<li>Acucar e canela para finalizar</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Peneirar juntos o acucar, a farinha, o fermento, o bicarbonato e o sal.</li>
+<li class="step"><span class="step-num">2</span>Bater os ovos com o suco e a casca de laranja.</li>
+<li class="step"><span class="step-num">3</span>Juntar os ingredientes liquidos aos secos, mexendo levemente ate ligar.</li>
+<li class="step"><span class="step-num">4</span>Com uma colher de cha, pingar a massa em oleo quente e fritar ate dourar.</li>
+<li class="step"><span class="step-num">5</span>Passar em acucar e canela.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(92)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-92" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/bolinhos-de-laranja.jpg" class="thumb" alt="Bolinhos de Laranja" onclick="openModal('assets/original_recipes/bolinhos-de-laranja.jpg','Bolinhos de Laranja')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="lanches-e-sanduiches" id="card-93">
+  <div class="card-header" onclick="toggleCard(93)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolinhos Enrolados / Enroladinhos Esfarelados</h3>
+      <span class="cat-badge">🥪 Lanches e Sanduíches</span>
+    </div>
+    <span class="chevron" id="chev-93">▼</span>
+  </div>
+  <div class="card-body" id="body-93" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>Massa base (farinha de trigo, gordura) — ingredientes completos na pagina anterior da receita</li>
+<li>Sal a gosto</li>
+<li>1 ovo</li>
+<li>Agua com sal quanto baste</li>
+<li>Oleo para fritar</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Esfarelar a massa.</li>
+<li class="step"><span class="step-num">2</span>Acrescentar o ovo e agua com sal ate dar o ponto de enrolar.</li>
+<li class="step"><span class="step-num">3</span>Enrolar no formato desejado.</li>
+<li class="step"><span class="step-num">4</span>Para fritar: colocar oleo em duas panelas e comecar a fritar em oleo frio.</li>
+<li class="step"><span class="step-num">5</span>Sempre deixar uma panela esfriando o oleo para fritar em lotes.</li>
+<p class="note">💡 Nota: A receita estava incompleta na imagem original — a lista de ingredientes encontrava-se em pagina anterior.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-93" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="lanches-e-sanduiches" id="card-94">
+  <div class="card-header" onclick="toggleCard(94)">
+    <div class="card-title-row">
+      <h3 class="card-name">Bolinho de Polvilho e Fuba</h3>
+      <span class="cat-badge">🥪 Lanches e Sanduíches</span>
+    </div>
+    <span class="chevron" id="chev-94">▼</span>
+  </div>
+  <div class="card-body" id="body-94" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1 kg de polvilho azedo</li>
+<li>1/2 kg de farinha de milho</li>
+<li>2 ovos</li>
+<li>Sal a gosto</li>
+<li>1 copo de agua</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Dissolver a farinha de milho com agua ate amolecer.</li>
+<li class="step"><span class="step-num">2</span>Acrescentar o polvilho e misturar.</li>
+<li class="step"><span class="step-num">3</span>Adicionar os ovos e o sal, amassando ate obter uma massa homogenea.</li>
+<li class="step"><span class="step-num">4</span>Modelar os bolinhos e fritar em oleo quente ou assar.</li>
+<p class="note">💡 Nota: A receita original estava cortada na imagem.</p>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-94" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="lanches-e-sanduiches" id="card-95">
+  <div class="card-header" onclick="toggleCard(95)">
+    <div class="card-title-row">
+      <h3 class="card-name">Crepes de Queijo Fresco com Tomates</h3>
+      <span class="cat-badge">🥪 Lanches e Sanduíches</span>
+    </div>
+    <span class="chevron" id="chev-95">▼</span>
+  </div>
+  <div class="card-body" id="body-95" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<p class="subtitle">Massa</p>
+<ul>
+<li>2 ovos</li>
+<li>1 xicara de leite</li>
+<li>1/2 xicara de farinha de trigo</li>
+<li>1 pitada de sal</li>
+</ul>
+<p class="subtitle">Recheio</p>
+<ul>
+<li>Queijo fresco fatiado</li>
+<li>Tomates em rodelas</li>
+<li>Azeite, sal, oregano e manjericao</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bater todos os ingredientes da massa no liquidificador.</li>
+<li class="step"><span class="step-num">2</span>Assar em frigideira antiaderente untada, formando crepes finos.</li>
+<li class="step"><span class="step-num">3</span>Rechear com o queijo e os tomates temperados com azeite e ervas.</li>
+<li class="step"><span class="step-num">4</span>Dobrar ou enrolar e servir.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-95" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="lanches-e-sanduiches" id="card-96">
+  <div class="card-header" onclick="toggleCard(96)">
+    <div class="card-title-row">
+      <h3 class="card-name">Pancakes de Banana sem Gluten</h3>
+      <span class="cat-badge">🥪 Lanches e Sanduíches</span>
+    </div>
+    <span class="chevron" id="chev-96">▼</span>
+  </div>
+  <div class="card-body" id="body-96" style="display:none">
+    <div class="recipe-content">
+      <p class="note">💡 Rendimento: 5 a 6 pancakes</p>
+<p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 bananas maduras</li>
+<li>2 ovos</li>
+<li>30 g de maizena</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Descascar as bananas e amassar bem com um garfo.</li>
+<li class="step"><span class="step-num">2</span>Misturar os ovos e depois a maizena, mexendo sempre com o garfo.</li>
+<li class="step"><span class="step-num">3</span>Aquecer uma frigideira de crepes untada com oleo.</li>
+<li class="step"><span class="step-num">4</span>Colocar uma concha de massa e deixar cozinhar por 2 minutos de cada lado.</li>
+<li class="step"><span class="step-num">5</span>Servir com mel, geleia ou xarope.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(96)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-96" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/pancakes-de-banana-panqueca-de-aveia.jpg" class="thumb" alt="Pancakes de Banana sem Gluten" onclick="openModal('assets/original_recipes/pancakes-de-banana-panqueca-de-aveia.jpg','Pancakes de Banana sem Gluten')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="lanches-e-sanduiches" id="card-97">
+  <div class="card-header" onclick="toggleCard(97)">
+    <div class="card-title-row">
+      <h3 class="card-name">Panqueca de Aveia</h3>
+      <span class="cat-badge">🥪 Lanches e Sanduíches</span>
+    </div>
+    <span class="chevron" id="chev-97">▼</span>
+  </div>
+  <div class="card-body" id="body-97" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 colheres de agua</li>
+<li>2 colheres de aveia</li>
+<li>1 ovo</li>
+<li>1 pitada de sal ou acucar</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bater tudo no liquidificador.</li>
+<li class="step"><span class="step-num">2</span>Assar em frigideira antiaderente untada, em fogo medio.</li>
+<li class="step"><span class="step-num">3</span>Servir com recheio doce ou salgado a gosto.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(97)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-97" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/pancakes-de-banana-panqueca-de-aveia.jpg" class="thumb" alt="Panqueca de Aveia" onclick="openModal('assets/original_recipes/pancakes-de-banana-panqueca-de-aveia.jpg','Panqueca de Aveia')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="lanches-e-sanduiches" id="card-98">
+  <div class="card-header" onclick="toggleCard(98)">
+    <div class="card-title-row">
+      <h3 class="card-name">Panetone Light</h3>
+      <span class="cat-badge">🥪 Lanches e Sanduíches</span>
+    </div>
+    <span class="chevron" id="chev-98">▼</span>
+  </div>
+  <div class="card-body" id="body-98" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>500 g de farinha de trigo</li>
+<li>30 g de fermento biologico fresco</li>
+<li>1/2 xicara de acucar</li>
+<li>2 ovos</li>
+<li>1/2 xicara de margarina light</li>
+<li>1 xicara de leite morno</li>
+<li>1 pitada de sal</li>
+<li>Frutas cristalizadas e uvas passas a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Dissolver o fermento no leite morno com o acucar.</li>
+<li class="step"><span class="step-num">2</span>Misturar com os ovos, a margarina e o sal.</li>
+<li class="step"><span class="step-num">3</span>Ir adicionando a farinha ate obter uma massa lisa.</li>
+<li class="step"><span class="step-num">4</span>Incorporar as frutas e as passas.</li>
+<li class="step"><span class="step-num">5</span>Deixar crescer, modelar na forma de panetone e assar a 180°C.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-98" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="lanches-e-sanduiches" id="card-99">
+  <div class="card-header" onclick="toggleCard(99)">
+    <div class="card-title-row">
+      <h3 class="card-name">Pao de Queijo Light</h3>
+      <span class="cat-badge">🥪 Lanches e Sanduíches</span>
+    </div>
+    <span class="chevron" id="chev-99">▼</span>
+  </div>
+  <div class="card-body" id="body-99" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>2 xicaras de polvilho azedo</li>
+<li>1 xicara de leite desnatado</li>
+<li>1/2 xicara de oleo</li>
+<li>1 ovo</li>
+<li>1 xicara de queijo parmesao ou minas light ralado</li>
+<li>Sal a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Ferver o leite com o oleo e o sal.</li>
+<li class="step"><span class="step-num">2</span>Despejar sobre o polvilho e misturar bem.</li>
+<li class="step"><span class="step-num">3</span>Adicionar o ovo e o queijo, sovando ate obter uma massa lisa.</li>
+<li class="step"><span class="step-num">4</span>Modelar em bolinhas e assar a 200°C ate dourar.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-99" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="lanches-e-sanduiches" id="card-100">
+  <div class="card-header" onclick="toggleCard(100)">
+    <div class="card-title-row">
+      <h3 class="card-name">Sanduiche Natural</h3>
+      <span class="cat-badge">🥪 Lanches e Sanduíches</span>
+    </div>
+    <span class="chevron" id="chev-100">▼</span>
+  </div>
+  <div class="card-body" id="body-100" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>Paes integrais</li>
+<li>Cream cheese ou requeijao</li>
+<li>Alface, tomate, cenoura ralada</li>
+<li>Frango desfiado ou atum temperado</li>
+<li>Limao, sal e ervas a gosto</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Passar cream cheese nos paes.</li>
+<li class="step"><span class="step-num">2</span>Montar com os vegetais e o recheio de proteina.</li>
+<li class="step"><span class="step-num">3</span>Temperar com limao e ervas.</li>
+<li class="step"><span class="step-num">4</span>Servir fresco.</li>
+<p>---</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-100" style="display:none">
+      
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="bebidas" id="card-101">
+  <div class="card-header" onclick="toggleCard(101)">
+    <div class="card-title-row">
+      <h3 class="card-name">Wafer Mae</h3>
+      <span class="cat-badge">🥤 Bebidas</span>
+    </div>
+    <span class="chevron" id="chev-101">▼</span>
+  </div>
+  <div class="card-body" id="body-101" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>3 ovos</li>
+<li>2 colheres de nata</li>
+<li>1 1/2 xicara de leite</li>
+<li>7 colheres de acucar</li>
+<li>1 pitada de sal</li>
+<li>2 colherinhas de fermento (royal)</li>
+<li>2 xicaras de farinha de trigo</li>
+<li>1 xicara de polvilho doce</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bater os ovos com o acucar e a nata.</li>
+<li class="step"><span class="step-num">2</span>Adicionar o leite e a pitada de sal; mexer bem.</li>
+<li class="step"><span class="step-num">3</span>Acrescentar a farinha e o polvilho.</li>
+<li class="step"><span class="step-num">4</span>Por ultimo, adicionar o fermento e misturar levemente (nao bater demais).</li>
+<li class="step"><span class="step-num">5</span>Assar na maquina de waffle ate dourar.</li>
+<p class="note">💡 Nota: Depois que coloca o fermento, so misturar — nao mexer muito.</p>
+<p>---</p>
+<p>## Bebidas</p>
+    </div>
+    <div class="card-actions">
+      <button class="btn-photo" onclick="togglePhotos(101)">📸 Ver Foto (1)</button>
+    </div>
+    <div class="photo-strip" id="photos-101" style="display:none">
+      <div class="thumbs"><img src="assets/original_recipes/wafer.jpg" class="thumb" alt="Wafer Mae" onclick="openModal('assets/original_recipes/wafer.jpg','Wafer Mae')" /></div>
+    </div>
+  </div>
+</article>
+
+<article class="card" data-cat="bebidas" id="card-102">
+  <div class="card-header" onclick="toggleCard(102)">
+    <div class="card-title-row">
+      <h3 class="card-name">Batida de Abacaxi</h3>
+      <span class="cat-badge">🥤 Bebidas</span>
+    </div>
+    <span class="chevron" id="chev-102">▼</span>
+  </div>
+  <div class="card-body" id="body-102" style="display:none">
+    <div class="recipe-content">
+      <p><strong>Ingredientes</strong></p>
+<ul>
+<li>1/2 abacaxi picado</li>
+<li>1 xicara de leite de coco</li>
+<li>1/2 xicara de cacaca ou vodca (opcional)</li>
+<li>Acucar ou mel a gosto</li>
+<li>Gelo</li>
+</ul>
+<p><strong>Modo de Preparo</strong></p>
+<li class="step"><span class="step-num">1</span>Bater todos os ingredientes no liquidificador com gelo.</li>
+<li class="step"><span class="step-num">2</span>Provar e ajustar o acucar.</li>
+<li class="step"><span class="step-num">3</span>Servir imediatamente em copos gelados.</li>
+<p>---</p>
+<p class="subtitle">Fim do Livro de Receitas da Familia</p>
+<p class="subtitle">"Cozinhar e um ato de amor. Cada receita aqui registrada carrega uma historia, uma lembranca e um pedaco de quem a fez."</p>
+    </div>
+    <div class="card-actions">
+      <span class="no-photo">Sem foto</span>
+    </div>
+    <div class="photo-strip" id="photos-102" style="display:none">
+      
+    </div>
+  </div>
+</article>
+</div>
+<div class="empty" id="empty">
+  <h3>Nenhuma receita encontrada 😔</h3>
+  <p>Tente outro termo ou categoria.</p>
+</div>
+</main>
+
+<!-- Modal -->
+<div class="modal" id="modal" onclick="closeModal(event)">
+  <div class="modal-box">
+    <div class="modal-top">
+      <h4 id="modal-title"></h4>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-img-wrap">
+      <img id="modal-img" src="" alt="">
+    </div>
+  </div>
+</div>
+
+<button id="top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+let currentCat = 'all';
+let currentSearch = '';
+
+function allCards() {
+  return document.querySelectorAll('.card');
+}
+
+function updateStats() {
+  const visible = document.querySelectorAll('.card:not(.hidden)').length;
+  const total = allCards().length;
+  document.getElementById('stats').textContent =
+    visible === total ? `Mostrando ${total} receitas` : `Mostrando ${visible} de ${total} receitas`;
+  document.getElementById('empty').style.display = visible === 0 ? 'block' : 'none';
+}
+
+function applyFilters() {
+  allCards().forEach(card => {
+    const catMatch = currentCat === 'all' || card.dataset.cat === currentCat;
+    const name = card.querySelector('.card-name').textContent.toLowerCase();
+    const searchMatch = !currentSearch || name.includes(currentSearch);
+    card.classList.toggle('hidden', !(catMatch && searchMatch));
+  });
+  updateStats();
+}
+
+function filterCat(btn, cat) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat = cat;
+  applyFilters();
+}
+
+function filterSearch(val) {
+  currentSearch = val.toLowerCase().trim();
+  applyFilters();
+}
+
+function toggleCard(idx) {
+  const card = document.getElementById('card-' + idx);
+  const body = document.getElementById('body-' + idx);
+  const chev = document.getElementById('chev-' + idx);
+  const open = card.classList.toggle('open');
+  body.style.display = open ? 'block' : 'none';
+}
+
+function togglePhotos(idx) {
+  const strip = document.getElementById('photos-' + idx);
+  const btn = strip.previousElementSibling.querySelector('.btn-photo');
+  const showing = strip.style.display !== 'none';
+  strip.style.display = showing ? 'none' : 'block';
+  if (btn) btn.textContent = showing
+    ? btn.textContent.replace('Esconder','Ver')
+    : btn.textContent.replace('Ver','Esconder');
+}
+
+function openModal(src, title) {
+  document.getElementById('modal-img').src = src;
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal')) return;
+  document.getElementById('modal').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// Back-to-top
+window.addEventListener('scroll', () => {
+  document.getElementById('top-btn').classList.toggle('show', window.scrollY > 400);
+});
+
+// ── LOGIN ──────────────────────────────────────────────────────────────────
+// To change the password: run this in the browser console:
+//   crypto.subtle.digest('SHA-256', new TextEncoder().encode('yourpassword'))
+//     .then(b => console.log(Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')))
+// Then replace PASS_HASH below with the output.
+const PASS_HASH = '3599827739cff3986fbbf348d1414395ea17d2d1c06987753b62be8a2c702fea'; // "receitas2024"
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function tryLogin() {
+  const val = document.getElementById('pw-input').value;
+  const hash = await sha256(val);
+  if (hash === PASS_HASH) {
+    sessionStorage.setItem('auth', '1');
+    document.getElementById('login-overlay').classList.add('hidden');
+    document.getElementById('pw-error').textContent = '';
+  } else {
+    document.getElementById('pw-error').textContent = '❌ Senha incorreta. Tente novamente.';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+
+if (sessionStorage.getItem('auth') !== '1') {
+  setTimeout(() => document.getElementById('pw-input').focus(), 50);
+} else {
+  document.getElementById('login-overlay').classList.add('hidden');
+}
+
+updateStats();
+</script>
+</body>
+</html>
