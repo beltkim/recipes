@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planejamento de Refeições</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #FAF7F2;
+            --warm-white: #FFFFFF;
+            --terracotta: #C4623A;
+            --terracotta-light: #E8896A;
+            --sage: #7A9E7E;
+            --dark: #2C2C2C;
+            --mid: #6B6B6B;
+            --light: #E8E0D5;
+            --card-shadow: 0 2px 20px rgba(44,44,44,0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--cream);
+            color: var(--dark);
+            min-height: 100vh;
+            padding: 24px 16px 60px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+            animation: fadeDown 0.6s ease both;
+        }
+
+        header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--dark);
+            letter-spacing: -0.5px;
+        }
+
+        header p {
+            font-size: 0.85rem;
+            color: var(--mid);
+            margin-top: 4px;
+            font-weight: 300;
+        }
+
+        .week-strip {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            animation: fadeDown 0.6s 0.1s ease both;
+        }
+
+        .week-btn {
+            background: var(--warm-white);
+            border: 1.5px solid var(--light);
+            color: var(--mid);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .week-btn:hover, .week-btn.active {
+            background: var(--terracotta);
+            border-color: var(--terracotta);
+            color: white;
+        }
+
+        .progress-bar {
+            background: var(--warm-white);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            box-shadow: var(--card-shadow);
+            animation: fadeDown 0.6s 0.15s ease both;
+        }
+
+        .progress-bar label {
+            font-size: 0.78rem;
+            color: var(--mid);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-track {
+            background: var(--light);
+            border-radius: 10px;
+            height: 8px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--terracotta), var(--terracotta-light));
+            border-radius: 10px;
+            transition: width 0.6s ease;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+            font-size: 0.78rem;
+            color: var(--mid);
+        }
+
+        .cards-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .day-card {
+            background: var(--warm-white);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            animation: fadeUp 0.5s ease both;
+        }
+
+        .day-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 28px rgba(44,44,44,0.12);
+        }
+
+        .day-card.done {
+            opacity: 0.6;
+        }
+
+        .day-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--light);
+            cursor: pointer;
+        }
+
+        .day-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .day-dot {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--terracotta);
+            flex-shrink: 0;
+        }
+
+        .day-dot.today {
+            background: var(--terracotta);
+            color: white;
+        }
+
+        .day-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .day-tag {
+            font-size: 0.7rem;
+            color: var(--mid);
+            font-weight: 300;
+        }
+
+        .done-toggle {
+            background: none;
+            border: 1.5px solid var(--light);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.72rem;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--mid);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .done-toggle:hover {
+            border-color: var(--sage);
+            color: var(--sage);
+        }
+
+        .day-card.done .done-toggle {
+            background: var(--sage);
+            border-color: var(--sage);
+            color: white;
+        }
+
+        .meals-body {
+            padding: 14px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .meal-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .meal-icon {
+            font-size: 1.1rem;
+            margin-top: 1px;
+            flex-shrink: 0;
+        }
+
+        .meal-info {}
+
+        .meal-type {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--terracotta);
+            font-weight: 500;
+        }
+
+        .meal-name {
+            font-size: 0.9rem;
+            color: var(--dark);
+            font-weight: 400;
+        }
+
+        .hidden { display: none !important; }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--mid);
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .day-card:nth-child(1) { animation-delay: 0.1s; }
+        .day-card:nth-child(2) { animation-delay: 0.18s; }
+        .day-card:nth-child(3) { animation-delay: 0.26s; }
+        .day-card:nth-child(4) { animation-delay: 0.34s; }
+        .day-card:nth-child(5) { animation-delay: 0.42s; }
+        .day-card:nth-child(6) { animation-delay: 0.5s; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Meu Planejamento</h1>
+    <p>Acompanhe suas refeições da semana</p>
+</header>
+
+<div class="week-strip">
+    <button class="week-btn active" onclick="filtrar('todos', this)">Todos</button>
+    <button class="week-btn" onclick="filtrar('almoço', this)">Almoços</button>
+    <button class="week-btn" onclick="filtrar('jantar', this)">Jantares</button>
+    <button class="week-btn" onclick="filtrar('pendentes', this)">Pendentes</button>
+    <button class="week-btn" onclick="filtrar('concluídos', this)">Concluídos</button>
+</div>
+
+<div class="progress-bar">
+    <label>Progresso da semana</label>
+    <div class="progress-track">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-info">
+        <span id="progress-text">0 de 6 dias concluídos</span>
+        <span id="progress-pct">0%</span>
+    </div>
+</div>
+
+<div class="cards-list" id="lista">
+
+    <div class="day-card" data-meals="jantar" data-done="false">
+        <div class="day-header">
+            <div class="day-left">
+                <div class="day-dot">Seg</div>
+                <div>
+                    <div class="day-name">Segunda-feira</div>
+                    <div class="day-tag">1 refeição</div>
+                </div>
+            </div>
+            <button class="done-toggle" onclick="toggleDone(this)">✓ Feito</button>
+        </div>
+        <div class="meals-body">
+            <div class="meal-item">
+                <span class="meal-icon">🌙</span>
+                <div class="meal-info">
+                    <div class="meal-type">Jantar</div>
+                    <div class="meal-name">Carne com Cuscuz Marroquino</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="day-card" data-meals="jantar" data-done="false">
+        <div class="day-header">
+            <div class="day-left">
+                <div class="day-dot">Ter</div>
+                <div>
+                    <div class="day-name">Terça-feira</div>
+                    <div class="day-tag">1 refeição</div>
+                </div>
+            </div>
+            <button class="done-toggle" onclick="toggleDone(this)">✓ Feito</button>
+        </div>
+        <div class="meals-body">
+            <div class="meal-item">
+                <span class="meal-icon">🌙</span>
+                <div class="meal-info">
+                    <div class="meal-type">Jantar</div>
+                    <div class="meal-name">Carne de Panela</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="day-card" data-meals="jantar" data-done="false">
+        <div class="day-header">
+            <div class="day-left">
+                <div class="day-dot">Qua</div>
+                <div>
+                    <div class="day-name">Quarta-feira</div>
+                    <div class="day-tag">1 refeição</div>
+                </div>
+            </div>
+            <button class="done-toggle" onclick="toggleDone(this)">✓ Feito</button>
+        </div>
+        <div class="meals-body">
+            <div class="meal-item">
+                <span class="meal-icon">🌙</span>
+                <div class="meal-info">
+                    <div class="meal-type">Jantar</div>
+                    <div class="meal-name">Macarrão à Bolonhesa</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="day-card" data-meals="jantar" data-done="false">
+        <div class="day-header">
+            <div class="day-left">
+                <div class="day-dot">Qui</div>
+                <div>
+                    <div class="day-name">Quinta-feira</div>
+                    <div class="day-tag">1 refeição</div>
+                </div>
+            </div>
+            <button class="done-toggle" onclick="toggleDone(this)">✓ Feito</button>
+        </div>
+        <div class="meals-body">
+            <div class="meal-item">
+                <span class="meal-icon">🌙</span>
+                <div class="meal-info">
+                    <div class="meal-type">Jantar</div>
+                    <div class="meal-name">Rocambole de Carne</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="day-card" data-meals="jantar" data-done="false">
+        <div class="day-header">
+            <div class="day-left">
+                <div class="day-dot">Sex</div>
+                <div>
+                    <div class="day-name">Sexta-feira</div>
+                    <div class="day-tag">1 refeição</div>
+                </div>
+            </div>
+            <button class="done-toggle" onclick="toggleDone(this)">✓ Feito</button>
+        </div>
+        <div class="meals-body">
+            <div class="meal-item">
+                <span class="meal-icon">🌙</span>
+                <div class="meal-info">
+                    <div class="meal-type">Jantar</div>
+                    <div class="meal-name">Frango Marinado</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="day-card" data-meals="almoço jantar" data-done="false">
+        <div class="day-header">
+            <div class="day-left">
+                <div class="day-dot">Sáb</div>
+                <div>
+                    <div class="day-name">Sábado</div>
+                    <div class="day-tag">2 refeições</div>
+                </div>
+            </div>
+            <button class="done-toggle" onclick="toggleDone(this)">✓ Feito</button>
+        </div>
+        <div class="meals-body">
+            <div class="meal-item">
+                <span class="meal-icon">☀️</span>
+                <div class="meal-info">
+                    <div class="meal-type">Almoço</div>
+                    <div class="meal-name">Frango com Curry</div>
+                </div>
+            </div>
+            <div class="meal-item">
+                <span class="meal-icon">🌙</span>
+                <div class="meal-info">
+                    <div class="meal-type">Jantar</div>
+                    <div class="meal-name">Brócolis Gratinado</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="empty-state" id="empty">Nenhuma refeição encontrada para este filtro.</div>
+
+<script>
+    let filtroAtivo = 'todos';
+
+    function filtrar(tipo, btn) {
+        filtroAtivo = tipo;
+        document.querySelectorAll('.week-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+
+        const cards = document.querySelectorAll('.day-card');
+        let visiveis = 0;
+
+        cards.forEach(card => {
+            const meals = card.dataset.meals;
+            const done = card.dataset.done === 'true';
+            let mostrar = false;
+
+            if (tipo === 'todos') mostrar = true;
+            else if (tipo === 'almoço') mostrar = meals.includes('almoço');
+            else if (tipo === 'jantar') mostrar = meals.includes('jantar');
+            else if (tipo === 'pendentes') mostrar = !done;
+            else if (tipo === 'concluídos') mostrar = done;
+
+            card.classList.toggle('hidden', !mostrar);
+            if (mostrar) visiveis++;
+        });
+
+        document.getElementById('empty').style.display = visiveis === 0 ? 'block' : 'none';
+    }
+
+    function toggleDone(btn) {
+        const card = btn.closest('.day-card');
+        const isDone = card.dataset.done === 'true';
+        card.dataset.done = isDone ? 'false' : 'true';
+        card.classList.toggle('done', !isDone);
+        updateProgress();
+
+        if (filtroAtivo === 'pendentes' || filtroAtivo === 'concluídos') {
+            filtrar(filtroAtivo, null);
+        }
+    }
+
+    function updateProgress() {
+        const cards = document.querySelectorAll('.day-card');
+        const total = cards.length;
+        const done = [...cards].filter(c => c.dataset.done === 'true').length;
+        const pct = Math.round((done / total) * 100);
+
+        document.getElementById('progress-fill').style.width = pct + '%';
+        document.getElementById('progress-text').textContent = `${done} de ${total} dias concluídos`;
+        document.getElementById('progress-pct').textContent = pct + '%';
+    }
+
+    updateProgress();
+</script>
+</body>
+</html>
