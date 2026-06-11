@@ -45,7 +45,7 @@ crypto.subtle.digest('SHA-256', new TextEncoder().encode('yourpassword'))
 
 Then replace `PASS_HASH` near the bottom of `index.html` with the output.
 
-## Receitas (160)
+## Receitas (161)
 
 - Almôndegas com Batata Assada e Queijo
 - Ameixas Recheadas
@@ -138,6 +138,7 @@ Then replace `PASS_HASH` near the bottom of `index.html` with the output.
 - Donuts
 - Farofa de Cenoura, Bacon e Azeitona
 - Farofa Fria
+- Farofa de Queijo Coalho, Banana-da-Terra e Calabresa
 - Farofa Fria de Tomates e Azeitonas
 - Fatias Húngaras de Coco e Leite Condensado
 - Feijão Branco
