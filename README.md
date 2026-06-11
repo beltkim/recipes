@@ -45,9 +45,8 @@ crypto.subtle.digest('SHA-256', new TextEncoder().encode('yourpassword'))
 
 Then replace `PASS_HASH` near the bottom of `index.html` with the output.
 
-## Receitas (155)
+## Receitas (160)
 
-- 6 Receitas de Assados para Ceias de Fim de Ano
 - Almôndegas com Batata Assada e Queijo
 - Ameixas Recheadas
 - Arroz Doce
@@ -128,6 +127,7 @@ Then replace `PASS_HASH` near the bottom of `index.html` with the output.
 - Chantilly Diet
 - Chantininho Resistente para Decoração de Bolos
 - Cheesecake
+- Chester Recheado com Frutas Secas e Nozes
 - Cobertura de Marshmallow
 - Creme da Tonha
 - Creme de Papaia Light
@@ -141,11 +141,13 @@ Then replace `PASS_HASH` near the bottom of `index.html` with the output.
 - Farofa Fria de Tomates e Azeitonas
 - Fatias Húngaras de Coco e Leite Condensado
 - Feijão Branco
+- Frango Assado Recheado com Farofa
 - Ganache de Chocolate
 - Ganache Low Carb
 - Geleia de Jabuticaba
 - Gruste
 - Lagarto Temperado
+- Lombo Recheado de Palmito
 - Legumes ao Queijo
 - Maria Mole
 - Massa de Pao
@@ -158,6 +160,8 @@ Then replace `PASS_HASH` near the bottom of `index.html` with the output.
 - Nhoque Suíço com Palmito e Alho-Poró
 - Omelete ao Forno
 - Pamonha de Colher
+- Pernil Caramelizado
+- Peru Especial de Ceia
 - Pancakes de Banana sem Gluten
 - Panetone Light
 - Panetone Salgado com Calabresa
@@ -192,6 +196,7 @@ Then replace `PASS_HASH` near the bottom of `index.html` with the output.
 - Strogonoff de Berinjelas
 - Surpresa de Atum
 - Tabulé de Feijão Branco
+- Tender com Molho de Laranja e Gengibre
 - Tomates Recheados
 - Torta de Banana
 - Torta de Carne Moída com Farinha de Amêndoas (Low Carb)
