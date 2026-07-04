@@ -276,6 +276,20 @@
   .benefit-item strong { color:var(--ice); display:block; font-size:.85rem; margin-bottom:.3rem; }
   .benefit-item p { font-size:.82rem; color:#1a4a5e; line-height:1.5; }
 
+  /* ── SCALING ── */
+  .qty-sc{cursor:pointer;border-bottom:1.5px dashed;padding-bottom:1px;transition:opacity .15s;white-space:nowrap}
+  .qty-sc::after{content:" ✎";font-size:.68em;opacity:.4}
+  .qty-sc:hover{opacity:.6}
+  .qty-inp{width:5.5em;padding:.1rem .3rem;border:1.5px solid var(--accent);border-radius:4px;
+    font-size:inherit;font-family:sans-serif;font-weight:700;color:var(--brown);
+    background:#fff;text-align:center;outline:none;display:inline-block;vertical-align:baseline}
+  .sc-bar{display:flex;align-items:center;gap:.45rem;font-size:.76rem;color:var(--muted);
+    margin-bottom:.35rem;font-family:sans-serif;flex-wrap:wrap}
+  .sc-badge{background:var(--accent);color:#fff;padding:.1rem .45rem;border-radius:.8rem;font-weight:700}
+  .sc-reset{background:none;border:1px solid var(--border);color:var(--muted);padding:.1rem .55rem;
+    border-radius:.8rem;cursor:pointer;font-family:inherit;font-size:.76rem;transition:all .15s}
+  .sc-reset:hover{border-color:var(--accent);color:var(--accent)}
+
   /* ── RESPONSIVE ── */
   @media (max-width:600px) {
     .invisible-ing-grid { grid-template-columns:1fr; }
@@ -1281,9 +1295,64 @@
     window.scrollTo({top:0, behavior:'smooth'});
   }
 
+  // ── SCALING ─────────────────────────────────────────────────────
+  function _fmtN(n){
+    if(n<=0) return '0';
+    if(Math.abs(n-Math.round(n))<.05) return String(Math.round(n));
+    return (Math.round(n*10)/10).toFixed(1);
+  }
+  function _parseQ(raw){
+    raw=raw.trim();
+    const rm=raw.match(/^([\d.,]+)\s*([a-zA-ZÀ-ú%]*)\s+a\s+([\d.,]+)\s*([a-zA-ZÀ-ú%]*)$/i);
+    if(rm) return{primary:+rm[1].replace(',','.'),_u1:rm[2],_v2:+rm[3].replace(',','.'),_u2:rm[4],
+      render(s){return `${_fmtN(this.primary*s)}${this._u1} a ${_fmtN(this._v2*s)}${this._u2}`}};
+    const sm=raw.match(/^([\d.,]+)(.*)/s);
+    if(!sm) return null;
+    const v=+sm[1].replace(',','.');
+    if(!v) return null;
+    return{primary:v,_rest:sm[2],render(s){return `${_fmtN(this.primary*s)}${this._rest}`}};
+  }
+  function _initIL(ul){
+    if(ul.dataset.si) return; ul.dataset.si='1';
+    const sps=[];
+    ul.querySelectorAll('li .ing-qty').forEach(sp=>{
+      const p=_parseQ(sp.textContent);
+      if(!p) return;
+      sp._p=p; sp._ul=ul;
+      sp.classList.add('qty-sc');
+      sp.title='Clique para ajustar a quantidade';
+      sp.addEventListener('click',()=>_edQ(sp));
+      sps.push(sp);
+    });
+    if(!sps.length) return;
+    const bar=document.createElement('div');
+    bar.className='sc-bar'; bar.hidden=true;
+    bar.innerHTML='<span>Porção ajustada</span><span class="sc-badge"></span><button class="sc-reset" type="button">↺ Redefinir</button>';
+    bar.querySelector('.sc-reset').onclick=()=>_apSc(ul,1);
+    ul.before(bar); ul._sb=bar;
+  }
+  function _edQ(sp){
+    const ul=sp._ul, sc=parseFloat(ul.dataset.sc||'1');
+    const cv=sp._p.primary*sc;
+    const inp=document.createElement('input');
+    inp.type='number'; inp.min='0'; inp.step='any';
+    inp.className='qty-inp'; inp.value=_fmtN(cv);
+    sp.replaceWith(inp); inp.focus(); inp.select();
+    const ok=()=>{const nv=parseFloat(inp.value);if(!isNaN(nv)&&nv>0)_apSc(ul,nv/sp._p.primary);inp.replaceWith(sp);};
+    inp.addEventListener('blur',ok);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ok();}if(e.key==='Escape')inp.replaceWith(sp);});
+  }
+  function _apSc(ul,scale){
+    ul.dataset.sc=scale;
+    ul.querySelectorAll('.qty-sc').forEach(sp=>{sp.textContent=sp._p.render(scale);});
+    if(ul._sb){const r=Math.abs(scale-1)<.001;ul._sb.hidden=r;if(!r)ul._sb.querySelector('.sc-badge').textContent=`×${_fmtN(scale)}`;}
+  }
+
   function toggleCard(header) {
     const card = header.closest('.recipe-card');
     card.classList.toggle('open');
+    if (card.classList.contains('open'))
+      card.querySelectorAll('.ingredients-list').forEach(_initIL);
   }
 
   function filterRecipes(type, btn) {

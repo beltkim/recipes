@@ -282,6 +282,20 @@
   }
   .login-box button:hover { background:var(--accent); }
   .login-box button:active { transform:scale(.98); }
+
+  /* ── SCALING ── */
+  .qty-sc{cursor:pointer;border-bottom:1.5px dashed;padding-bottom:1px;transition:opacity .15s;white-space:nowrap}
+  .qty-sc::after{content:" ✎";font-size:.68em;opacity:.4}
+  .qty-sc:hover{opacity:.6}
+  .qty-inp{width:5.5em;padding:.1rem .3rem;border:1.5px solid var(--accent);border-radius:4px;
+    font-size:inherit;font-family:sans-serif;font-weight:700;color:var(--brown);
+    background:#fff;text-align:center;outline:none;display:inline-block;vertical-align:baseline}
+  .sc-bar{display:flex;align-items:center;gap:.45rem;font-size:.76rem;color:var(--muted);
+    margin-bottom:.35rem;font-family:sans-serif;flex-wrap:wrap}
+  .sc-badge{background:var(--accent);color:#fff;padding:.1rem .45rem;border-radius:.8rem;font-weight:700}
+  .sc-reset{background:none;border:1px solid var(--border);color:var(--muted);padding:.1rem .55rem;
+    border-radius:.8rem;cursor:pointer;font-family:inherit;font-size:.76rem;transition:all .15s}
+  .sc-reset:hover{border-color:var(--accent);color:var(--accent)}
 </style>
 </head>
 <body>
@@ -6770,12 +6784,82 @@ function filterSearch(val) {
   applyFilters();
 }
 
+// ── SCALING ─────────────────────────────────────────────────────
+function _fmtN(n){
+  if(n<=0) return '0';
+  if(Math.abs(n-Math.round(n))<.05) return String(Math.round(n));
+  return (Math.round(n*10)/10).toFixed(1);
+}
+function _fmtMix(n){
+  const w=Math.floor(n),f=n-w;
+  if(f<.05) return _fmtN(n);
+  const fracs=[[.5,'1/2'],[.25,'1/4'],[.75,'3/4'],[1/3,'1/3'],[2/3,'2/3']];
+  for(const[fv,fs] of fracs) if(Math.abs(f-fv)<.05) return w?`${w} ${fs}`:fs;
+  return _fmtN(n);
+}
+function _parseLi(text){
+  let m=text.match(/^(\d+)\s+(\d+)\/(\d+)(.*)/);
+  if(m){const v=+m[1]+ +m[2]/+m[3];return{v,displayNum:`${m[1]} ${m[2]}/${m[3]}`,rest:m[4],frac:true};}
+  m=text.match(/^(\d+)\/(\d+)(.*)/);
+  if(m){const v=+m[1]/+m[2];return{v,displayNum:`${m[1]}/${m[2]}`,rest:m[3],frac:true};}
+  m=text.match(/^(\d+(?:[.,]\d+)?)(.*)/);
+  if(m){const v=parseFloat(m[1].replace(',','.'));if(!v||isNaN(v))return null;return{v,displayNum:m[1],rest:m[2],frac:false};}
+  return null;
+}
+function _initCB(body){
+  if(body.dataset.si) return; body.dataset.si='1';
+  const cont=body.querySelector('.recipe-content');
+  if(!cont) return;
+  cont.querySelectorAll('ul').forEach(ul=>{
+    const sps=[];
+    ul.querySelectorAll('li:not(.step)').forEach(li=>{
+      const p=_parseLi(li.textContent.trim());
+      if(!p) return;
+      const sp=document.createElement('span');
+      sp.className='qty-sc'; sp._p=p; sp._ul=ul;
+      sp.textContent=p.displayNum;
+      sp.title='Clique para ajustar a quantidade';
+      sp.addEventListener('click',()=>_edCB(sp));
+      li.textContent='';
+      li.appendChild(sp);
+      li.appendChild(document.createTextNode(p.rest));
+      sps.push(sp);
+    });
+    if(!sps.length) return;
+    const bar=document.createElement('div');
+    bar.className='sc-bar'; bar.hidden=true;
+    bar.innerHTML='<span>Porção ajustada</span><span class="sc-badge"></span><button class="sc-reset" type="button">↺ Redefinir</button>';
+    bar.querySelector('.sc-reset').onclick=()=>_apCB(ul,1);
+    ul.before(bar); ul._sb=bar; ul._sps=sps;
+  });
+}
+function _edCB(sp){
+  const ul=sp._ul, sc=parseFloat(ul.dataset.sc||'1');
+  const cv=sp._p.v*sc;
+  const inp=document.createElement('input');
+  inp.type='number'; inp.min='0'; inp.step='any';
+  inp.className='qty-inp'; inp.value=_fmtN(cv);
+  sp.replaceWith(inp); inp.focus(); inp.select();
+  const ok=()=>{const nv=parseFloat(inp.value);if(!isNaN(nv)&&nv>0)_apCB(ul,nv/sp._p.v);inp.replaceWith(sp);};
+  inp.addEventListener('blur',ok);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ok();}if(e.key==='Escape')inp.replaceWith(sp);});
+}
+function _apCB(ul,scale){
+  ul.dataset.sc=scale;
+  (ul._sps||[]).forEach(sp=>{
+    const nv=sp._p.v*scale;
+    sp.textContent=sp._p.frac?_fmtMix(nv):_fmtN(nv);
+  });
+  if(ul._sb){const r=Math.abs(scale-1)<.001;ul._sb.hidden=r;if(!r)ul._sb.querySelector('.sc-badge').textContent=`×${_fmtN(scale)}`;}
+}
+
 function toggleCard(idx) {
   const card = document.getElementById('card-' + idx);
   const body = document.getElementById('body-' + idx);
   const chev = document.getElementById('chev-' + idx);
   const open = card.classList.toggle('open');
   body.style.display = open ? 'block' : 'none';
+  if (open) _initCB(body);
 }
 
 function togglePhotos(idx) {
