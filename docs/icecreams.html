@@ -1338,7 +1338,7 @@
     inp.type='number'; inp.min='0'; inp.step='any';
     inp.className='qty-inp'; inp.value=_fmtN(cv);
     sp.replaceWith(inp); inp.focus(); inp.select();
-    const ok=()=>{const nv=parseFloat(inp.value);if(!isNaN(nv)&&nv>0)_apSc(ul,nv/sp._p.primary);inp.replaceWith(sp);};
+    const ok=()=>{const nv=parseFloat(inp.value);if(!isNaN(nv)&&nv>0){const sc=nv/sp._p.primary;_apSc(ul,sc);sp.textContent=sp._p.render(sc);}inp.replaceWith(sp);};
     inp.addEventListener('blur',ok);
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ok();}if(e.key==='Escape')inp.replaceWith(sp);});
   }

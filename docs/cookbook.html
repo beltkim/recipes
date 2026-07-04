@@ -6840,7 +6840,7 @@ function _edCB(sp){
   inp.type='number'; inp.min='0'; inp.step='any';
   inp.className='qty-inp'; inp.value=_fmtN(cv);
   sp.replaceWith(inp); inp.focus(); inp.select();
-  const ok=()=>{const nv=parseFloat(inp.value);if(!isNaN(nv)&&nv>0)_apCB(ul,nv/sp._p.v);inp.replaceWith(sp);};
+  const ok=()=>{const nv=parseFloat(inp.value);if(!isNaN(nv)&&nv>0){const sc=nv/sp._p.v;_apCB(ul,sc);sp.textContent=sp._p.frac?_fmtMix(nv):_fmtN(nv);}inp.replaceWith(sp);};
   inp.addEventListener('blur',ok);
   inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ok();}if(e.key==='Escape')inp.replaceWith(sp);});
 }
