@@ -233,6 +233,17 @@
   }
   #top-btn.show { opacity:1; }
 
+  /* ── ICECREAM BUTTON ── */
+  .icecream-btn {
+    display:inline-flex; align-items:center; gap:.5rem;
+    margin-top:1.1rem; background:rgba(255,255,255,.13);
+    color:#fff; border:1.5px solid rgba(255,255,255,.35);
+    padding:.5rem 1.3rem; border-radius:2rem; font-size:.88rem;
+    text-decoration:none; transition:all .2s; backdrop-filter:blur(4px);
+    font-family:inherit;
+  }
+  .icecream-btn:hover { background:rgba(255,255,255,.25); border-color:rgba(255,255,255,.6); }
+
   @media(max-width:600px) {
     .card-header { padding:.75rem 1rem; }
     .card-body { padding:1rem; }
@@ -280,11 +291,14 @@
   <div class="login-box">
     <div class="lock">🔒</div>
     <h2>Livro de Receitas</h2>
-    <p>Digite a senha para acessar o livro da família</p>
+    <p>Digite suas credenciais para acessar o livro da família</p>
+    <input type="text" id="user-input" placeholder="Usuário" autocomplete="username"
+           onkeydown="if(event.key==='Enter') document.getElementById('pw-input').focus()"
+           style="margin-bottom:.6rem">
     <input type="password" id="pw-input" placeholder="Senha" autocomplete="current-password"
            onkeydown="if(event.key==='Enter') tryLogin()">
     <div class="login-error" id="pw-error"></div>
-    <button onclick="tryLogin()">Entrar</button>
+    <button id="login-btn" onclick="tryLogin()">Entrar</button>
   </div>
 </div>
 
@@ -293,6 +307,9 @@
   <p>Uma coleção de receitas reunidas com carinho, transmitidas de geração em geração</p>
   <div class="search-wrap">
     <input type="text" id="search" placeholder="Buscar receita..." oninput="filterSearch(this.value)" autocomplete="off">
+  </div>
+  <div style="margin-top:.9rem">
+    <a href="icecreams.html" class="icecream-btn">🍦 Sorvetes com 4 Ingredientes</a>
   </div>
 </header>
 
@@ -6792,33 +6809,53 @@ window.addEventListener('scroll', () => {
 });
 
 // ── LOGIN ──────────────────────────────────────────────────────────────────
-// To change the password: run this in the browser console:
-//   crypto.subtle.digest('SHA-256', new TextEncoder().encode('yourpassword'))
-//     .then(b => console.log(Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')))
-// Then replace PASS_HASH below with the output.
-const PASS_HASH = '3599827739cff3986fbbf348d1414395ea17d2d1c06987753b62be8a2c702fea'; // "receitas2024"
-
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
+const AUTH_URL = 'https://api-auth-y887.onrender.com/ghpages/login';
 
 async function tryLogin() {
-  const val = document.getElementById('pw-input').value;
-  const hash = await sha256(val);
-  if (hash === PASS_HASH) {
-    sessionStorage.setItem('auth', '1');
-    document.getElementById('login-overlay').classList.add('hidden');
-    document.getElementById('pw-error').textContent = '';
-  } else {
-    document.getElementById('pw-error').textContent = '❌ Senha incorreta. Tente novamente.';
-    document.getElementById('pw-input').value = '';
+  const username = document.getElementById('user-input').value.trim();
+  const password = document.getElementById('pw-input').value;
+  const errEl    = document.getElementById('pw-error');
+  const btn      = document.getElementById('login-btn');
+
+  if (!username) {
+    errEl.textContent = '❌ Preencha o usuário.';
+    document.getElementById('user-input').focus();
+    return;
+  }
+  if (!password) {
+    errEl.textContent = '❌ Preencha a senha.';
     document.getElementById('pw-input').focus();
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Entrando…';
+  errEl.textContent = '';
+
+  try {
+    const credentials = btoa(username + ':' + password);
+    const res = await fetch(AUTH_URL, {
+      method: 'POST',
+      headers: { 'Authorization': 'Basic ' + credentials }
+    });
+    if (res.ok) {
+      sessionStorage.setItem('auth', '1');
+      document.getElementById('login-overlay').classList.add('hidden');
+    } else {
+      errEl.textContent = '❌ Usuário ou senha incorretos.';
+      document.getElementById('pw-input').value = '';
+      document.getElementById('pw-input').focus();
+    }
+  } catch {
+    errEl.textContent = '⚠️ Erro de conexão. Tente novamente.';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
   }
 }
 
 if (sessionStorage.getItem('auth') !== '1') {
-  setTimeout(() => document.getElementById('pw-input').focus(), 50);
+  setTimeout(() => document.getElementById('user-input').focus(), 50);
 } else {
   document.getElementById('login-overlay').classList.add('hidden');
 }

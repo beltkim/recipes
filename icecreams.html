@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sorvetes com 4 Ingredientes · Lulo Fouet</title>
+<style>
+  :root {
+    --bg:       #f5f0eb;
+    --card-bg:  #fffdf8;
+    --border:   #e0cdb5;
+    --brown:    #7b4a1e;
+    --brown2:   #a0622a;
+    --text:     #3d2b1f;
+    --muted:    #8a7060;
+    --accent:   #c0762e;
+    --ice:      #4a8fa8;
+    --ice2:     #6ab4cf;
+    --ice-bg:   #e8f4f8;
+    --note-bg:  #fff8ec;
+    --shadow:   0 2px 12px rgba(0,0,0,.08);
+    --shadow-lg:0 6px 30px rgba(0,0,0,.13);
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Georgia',serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #0d2b3e 0%, #1a4a6b 50%, #2c6e8a 100%);
+    color:#fff; text-align:center; padding:2.5rem 1rem 2rem;
+    border-bottom:4px solid #c0762e; position:relative; overflow:hidden;
+  }
+  header::before {
+    content:"❄"; position:absolute; font-size:8rem; opacity:.05;
+    top:-1rem; left:-1rem; transform:rotate(-15deg);
+  }
+  header::after {
+    content:"🍦"; position:absolute; font-size:6rem; opacity:.07;
+    bottom:-1rem; right:2rem;
+  }
+  .header-inner { position:relative; z-index:1; }
+  header .brand { font-size:.8rem; letter-spacing:.15em; opacity:.7; text-transform:uppercase; margin-bottom:.5rem; }
+  header h1 { font-size:clamp(1.6rem,4vw,2.8rem); letter-spacing:.03em; margin-bottom:.4rem; }
+  header h1 span { color:#c0a060; }
+  header p  { font-size:.93rem; opacity:.8; font-style:italic; }
+  .back-btn {
+    position:absolute; top:1rem; left:1rem; z-index:2;
+    background:rgba(255,255,255,.15); color:#fff; border:1.5px solid rgba(255,255,255,.3);
+    padding:.4rem .9rem; border-radius:2rem; font-size:.82rem;
+    text-decoration:none; transition:background .2s; backdrop-filter:blur(4px);
+  }
+  .back-btn:hover { background:rgba(255,255,255,.25); }
+
+  /* ── TABS ── */
+  .tabs {
+    display:flex; overflow-x:auto; gap:0;
+    background:#fff; border-bottom:2px solid var(--border);
+    position:sticky; top:0; z-index:10;
+    box-shadow:0 2px 8px rgba(0,0,0,.07);
+  }
+  .tab-btn {
+    flex-shrink:0; cursor:pointer; border:none; background:none;
+    color:var(--muted); padding:.85rem 1.4rem; font-size:.88rem;
+    font-family:inherit; transition:all .2s; border-bottom:3px solid transparent;
+    white-space:nowrap;
+  }
+  .tab-btn:hover { color:var(--brown); background:#fdf5ea; }
+  .tab-btn.active { color:var(--brown); border-bottom-color:var(--accent); font-weight:700; background:#fffbf5; }
+  .tab-btn .tab-icon { font-size:1.1em; margin-right:.35rem; }
+
+  /* ── SECTION PANELS ── */
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  /* ── RECIPE SECTION ── */
+  .recipes-wrap { max-width:900px; margin:0 auto; padding:1.5rem 1rem 4rem; }
+  .section-intro { background:var(--card-bg); border:1px solid var(--border); border-radius:12px; padding:1.2rem 1.4rem; margin-bottom:1.4rem; border-left:4px solid var(--accent); }
+  .section-intro h2 { font-size:1.2rem; color:var(--brown); margin-bottom:.5rem; }
+  .section-intro p { font-size:.9rem; color:var(--muted); line-height:1.6; }
+
+  .filter-bar { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:1.2rem; }
+  .filter-pill {
+    cursor:pointer; border:1.5px solid var(--border); background:var(--card-bg);
+    color:var(--brown); padding:.35rem .9rem; border-radius:2rem; font-size:.82rem;
+    transition:all .2s; white-space:nowrap; font-family:inherit;
+  }
+  .filter-pill:hover, .filter-pill.active {
+    background:var(--brown); color:#fff; border-color:var(--brown);
+  }
+  .filter-pill.ice.active { background:var(--ice); border-color:var(--ice); }
+
+  /* ── RECIPE CARD ── */
+  .recipe-card {
+    background:var(--card-bg); border:1px solid var(--border);
+    border-radius:12px; margin-bottom:.9rem; overflow:hidden;
+    box-shadow:var(--shadow); transition:box-shadow .2s;
+  }
+  .recipe-card:hover { box-shadow:0 4px 20px rgba(0,0,0,.11); }
+  .recipe-card.hidden { display:none; }
+
+  .rc-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:.9rem 1.2rem; cursor:pointer; user-select:none;
+    background:linear-gradient(90deg,#fffdf8,#fdf0e0);
+    border-bottom:1px solid transparent; transition:background .2s;
+  }
+  .rc-header:hover { background:linear-gradient(90deg,#fef5e7,#fde8c8); }
+  .recipe-card.open .rc-header { border-bottom-color:var(--border); }
+  .rc-left { display:flex; align-items:center; gap:.75rem; flex:1; }
+  .rc-emoji { font-size:1.5rem; flex-shrink:0; }
+  .rc-name { font-size:1rem; color:var(--brown); font-weight:700; }
+  .rc-badge {
+    font-size:.7rem; padding:.18rem .55rem; border-radius:1rem;
+    font-family:sans-serif; white-space:nowrap; margin-left:.4rem;
+  }
+  .badge-gelato { background:#fde8c8; color:#7b4a1e; }
+  .badge-sorbet  { background:#d4eef8; color:#1a5a72; }
+  .badge-americano { background:#f0ead8; color:#5a4020; }
+  .rc-chevron { color:var(--muted); font-size:.85rem; transition:transform .25s; flex-shrink:0; }
+  .recipe-card.open .rc-chevron { transform:rotate(180deg); }
+
+  .rc-body { padding:1.2rem 1.4rem 1rem; display:none; }
+  .recipe-card.open .rc-body { display:block; }
+
+  .ingredients-list { list-style:none; margin:.2rem 0 1rem; }
+  .ingredients-list li {
+    padding:.3rem 0 .3rem 1.4rem; position:relative; font-size:.93rem;
+    border-bottom:1px dashed #edddc8; display:flex; justify-content:space-between; align-items:center;
+  }
+  .ingredients-list li:last-child { border-bottom:none; }
+  .ingredients-list li::before { content:"•"; color:var(--accent); position:absolute; left:.3rem; }
+  .ing-qty { color:var(--ice); font-weight:700; font-family:sans-serif; font-size:.88rem; white-space:nowrap; margin-left:.5rem; }
+
+  .tip-box {
+    background:var(--ice-bg); border-left:3px solid var(--ice);
+    padding:.6rem .9rem; border-radius:6px; font-size:.87rem;
+    color:#1a4a5e; margin:.8rem 0 .4rem; line-height:1.55;
+  }
+  .tip-box::before { content:"💡 "; }
+
+  .note-box {
+    background:var(--note-bg); border-left:3px solid var(--accent);
+    padding:.6rem .9rem; border-radius:6px; font-size:.87rem;
+    color:var(--muted); margin:.8rem 0 .4rem; line-height:1.55; font-style:italic;
+  }
+  .warn-box {
+    background:#fff3e0; border-left:3px solid #e07820;
+    padding:.6rem .9rem; border-radius:6px; font-size:.87rem;
+    color:#7a3e00; margin:.8rem 0 .4rem; line-height:1.55;
+  }
+  .warn-box::before { content:"⚠️ "; }
+
+  .ingredients-label { font-size:.78rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin-bottom:.4rem; font-family:sans-serif; }
+  .recipe-note { font-size:.88rem; color:var(--muted); line-height:1.6; margin-top:.6rem; }
+
+  /* ── TECHNIQUES ── */
+  .techniques-wrap { max-width:900px; margin:0 auto; padding:1.5rem 1rem 4rem; }
+  .technique-card {
+    background:var(--card-bg); border:1px solid var(--border);
+    border-radius:14px; margin-bottom:1.4rem; overflow:hidden;
+    box-shadow:var(--shadow-lg);
+  }
+  .technique-header {
+    background:linear-gradient(135deg, #0d2b3e, #1a4a6b);
+    color:#fff; padding:1.3rem 1.5rem;
+  }
+  .technique-header .method-num { font-size:.75rem; letter-spacing:.12em; opacity:.7; text-transform:uppercase; margin-bottom:.3rem; }
+  .technique-header h3 { font-size:1.2rem; margin-bottom:.2rem; }
+  .technique-header .subtitle { font-size:.88rem; opacity:.8; font-style:italic; }
+  .technique-body { padding:1.3rem 1.5rem; }
+
+  .need-list { margin:.4rem 0 1rem; }
+  .need-list li { padding:.25rem 0 .25rem 1.4rem; position:relative; font-size:.9rem; color:var(--muted); }
+  .need-list li::before { content:"→"; color:var(--ice); position:absolute; left:0; font-size:.85rem; }
+  .need-label { font-size:.78rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:1rem 0 .4rem; font-family:sans-serif; }
+
+  .steps-list { list-style:none; margin-bottom:.8rem; }
+  .step-item {
+    display:flex; gap:.9rem; align-items:flex-start;
+    padding:.6rem 0; border-bottom:1px solid #f0e8d8; font-size:.93rem; line-height:1.6;
+  }
+  .step-item:last-child { border-bottom:none; }
+  .step-num {
+    min-width:1.7rem; height:1.7rem; border-radius:50%;
+    background:var(--brown); color:#fff; font-size:.75rem;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:bold; flex-shrink:0; margin-top:.1rem;
+  }
+
+  .tip-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:.7rem; margin-top:.8rem; }
+  .tip-item { background:#f7f3ee; border-radius:8px; padding:.8rem 1rem; font-size:.88rem; line-height:1.5; color:var(--text); }
+  .tip-item strong { color:var(--brown); display:block; margin-bottom:.25rem; font-size:.82rem; }
+
+  /* ── EQUIPMENT ── */
+  .equipment-wrap { max-width:900px; margin:0 auto; padding:1.5rem 1rem 4rem; }
+  .equip-intro { background:var(--card-bg); border:1px solid var(--border); border-radius:12px; padding:1.2rem 1.4rem; margin-bottom:1.4rem; border-left:4px solid var(--ice); }
+  .equip-intro p { font-size:.9rem; color:var(--muted); line-height:1.6; }
+  .equip-section-title { font-size:1rem; color:var(--brown); font-weight:700; margin:1.5rem 0 .8rem; padding-bottom:.4rem; border-bottom:2px solid var(--border); }
+
+  .equip-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:1rem; margin-bottom:1.2rem; }
+  .equip-item {
+    background:var(--card-bg); border:1px solid var(--border); border-radius:12px;
+    padding:1.1rem 1.2rem; box-shadow:var(--shadow);
+  }
+  .equip-name { font-size:.95rem; color:var(--brown); font-weight:700; margin-bottom:.4rem; }
+  .equip-desc { font-size:.85rem; color:var(--muted); line-height:1.55; }
+
+  /* ── MACHINES TABLE ── */
+  .machine-table-wrap { overflow-x:auto; margin-bottom:1.5rem; }
+  .machine-table {
+    width:100%; border-collapse:collapse; font-size:.87rem;
+  }
+  .machine-table th {
+    background:linear-gradient(135deg,#0d2b3e,#1a4a6b); color:#fff;
+    padding:.65rem .9rem; text-align:left; font-weight:600; font-size:.78rem;
+    letter-spacing:.05em; white-space:nowrap;
+  }
+  .machine-table td { padding:.55rem .9rem; border-bottom:1px solid var(--border); vertical-align:top; }
+  .machine-table tr:last-child td { border-bottom:none; }
+  .machine-table tr:nth-child(even) td { background:#faf7f2; }
+  .machine-table .highlight { color:var(--ice); font-weight:700; }
+  .machine-table .rec-badge {
+    display:inline-block; background:#c0762e; color:#fff;
+    font-size:.68rem; padding:.1rem .45rem; border-radius:.8rem; margin-left:.35rem; white-space:nowrap;
+  }
+
+  /* ── SCIENCE / FUNDAMENTOS ── */
+  .science-wrap { max-width:900px; margin:0 auto; padding:1.5rem 1rem 4rem; }
+  .sci-section { margin-bottom:2rem; }
+  .sci-section-title {
+    font-size:1.15rem; color:var(--brown); font-weight:700;
+    margin-bottom:1rem; padding-bottom:.5rem; border-bottom:2px solid var(--border);
+    display:flex; align-items:center; gap:.5rem;
+  }
+  .ingredient-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:1rem; }
+  .ingredient-card {
+    background:var(--card-bg); border:1px solid var(--border); border-radius:12px;
+    padding:1.1rem 1.2rem; box-shadow:var(--shadow);
+    border-top:3px solid var(--accent);
+  }
+  .ingredient-card.water { border-top-color:var(--ice); }
+  .ingredient-card.protein { border-top-color:#6a8a4a; }
+  .ingredient-card .ing-icon { font-size:1.8rem; margin-bottom:.5rem; }
+  .ingredient-card .ing-name { font-size:.95rem; color:var(--brown); font-weight:700; margin-bottom:.4rem; }
+  .ingredient-card .ing-role { font-size:.82rem; background:var(--note-bg); border-radius:.5rem; padding:.2rem .5rem; color:var(--accent); font-family:sans-serif; display:inline-block; margin-bottom:.5rem; }
+  .ingredient-card p { font-size:.84rem; color:var(--muted); line-height:1.55; }
+
+  .invisible-ing-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem; }
+  .inv-card {
+    background:linear-gradient(135deg,#0d2b3e,#1a4a6b); color:#fff;
+    border-radius:12px; padding:1.2rem 1.4rem;
+  }
+  .inv-card h4 { font-size:1rem; margin-bottom:.5rem; }
+  .inv-card p { font-size:.85rem; opacity:.85; line-height:1.55; }
+
+  /* Timeline */
+  .timeline { position:relative; padding-left:2rem; margin-bottom:1rem; }
+  .timeline::before { content:''; position:absolute; left:.5rem; top:.5rem; bottom:.5rem; width:2px; background:var(--border); border-radius:2px; }
+  .tl-item { position:relative; margin-bottom:1.1rem; }
+  .tl-dot { position:absolute; left:-1.65rem; top:.25rem; width:.8rem; height:.8rem; border-radius:50%; background:var(--accent); border:2px solid #fff; box-shadow:0 0 0 2px var(--accent); }
+  .tl-date { font-size:.78rem; font-family:sans-serif; color:var(--ice); font-weight:700; margin-bottom:.15rem; }
+  .tl-text { font-size:.88rem; color:var(--text); line-height:1.5; }
+
+  /* Stabilizers */
+  .stabilizer-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1rem; }
+  .stab-card {
+    background:var(--card-bg); border:1px solid var(--border); border-radius:12px;
+    padding:1rem 1.1rem; box-shadow:var(--shadow); border-left:4px solid var(--ice);
+  }
+  .stab-name { font-size:.9rem; color:var(--brown); font-weight:700; margin-bottom:.3rem; }
+  .stab-code { font-size:.7rem; color:var(--ice); font-family:sans-serif; font-weight:700; margin-bottom:.4rem; }
+  .stab-desc { font-size:.83rem; color:var(--muted); line-height:1.55; }
+
+  .benefits-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:.8rem; margin:.8rem 0; }
+  .benefit-item { background:var(--ice-bg); border-radius:10px; padding:.9rem 1rem; }
+  .benefit-item strong { color:var(--ice); display:block; font-size:.85rem; margin-bottom:.3rem; }
+  .benefit-item p { font-size:.82rem; color:#1a4a5e; line-height:1.5; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width:600px) {
+    .invisible-ing-grid { grid-template-columns:1fr; }
+    .inv-card { background:linear-gradient(135deg,#0d2b3e,#1a4a6b); }
+    .machine-table { font-size:.78rem; }
+    .machine-table th, .machine-table td { padding:.45rem .6rem; }
+    .tab-btn { padding:.75rem .9rem; font-size:.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="cookbook.html" class="back-btn">← Receituário</a>
+  <div class="header-inner">
+    <div class="brand">Lulo Fouet</div>
+    <h1>Sorvetes com <span>4 Ingredientes</span></h1>
+    <p>Receitas artesanais, técnicas essenciais e a ciência por trás do sorvete perfeito</p>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" onclick="showTab('receitas',this)"><span class="tab-icon">🍨</span>Receitas</button>
+  <button class="tab-btn" onclick="showTab('tecnicas',this)"><span class="tab-icon">🔬</span>Técnicas</button>
+  <button class="tab-btn" onclick="showTab('equipamentos',this)"><span class="tab-icon">⚙️</span>Equipamentos</button>
+  <button class="tab-btn" onclick="showTab('ciencia',this)"><span class="tab-icon">🧪</span>Ciência</button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════
+     PANEL: RECEITAS
+════════════════════════════════════════════════════════ -->
+<div id="panel-receitas" class="panel active">
+  <div class="recipes-wrap">
+    <div class="section-intro">
+      <h2>🍦 Receitas Artesanais</h2>
+      <p>Todas as receitas seguem a filosofia do <strong>"bolo de liquidificador"</strong>: simples, diretas e funcionais. Bateu no liquidificador, colocou na sorveteira (ou usou uma das técnicas manuais) e está pronto. Adicionar uma pitada de sal em todas as receitas com leite é altamente recomendado para realçar o sabor.</p>
+    </div>
+
+    <div class="filter-bar" id="recipe-filters">
+      <button class="filter-pill active" onclick="filterRecipes('all',this)">Todos</button>
+      <button class="filter-pill" onclick="filterRecipes('gelato',this)">🍨 Gelato</button>
+      <button class="filter-pill ice" onclick="filterRecipes('sorbet',this)">🍧 Sorbet</button>
+      <button class="filter-pill" onclick="filterRecipes('americano',this)">🍦 Americano</button>
+    </div>
+
+    <!-- ── GELATO RECIPES ── -->
+
+    <div class="recipe-card" data-type="gelato">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🍋</div>
+          <div>
+            <div class="rc-name">Sorvete Torta de Limão <span class="rc-badge badge-gelato">Gelato</span></div>
+          </div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Leite Condensado <span class="ing-qty">390g</span></li>
+          <li>Leite Integral <span class="ing-qty">200g</span></li>
+          <li>Creme de Leite UHT 17% <span class="ing-qty">250g</span></li>
+          <li>Suco de Limão <span class="ing-qty">150g</span></li>
+        </ul>
+        <div class="tip-box">Bata tudo no liquidificador até ficar homogêneo. O suco de limão coalhará levemente a mistura — isso é normal e contribui para a textura.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="gelato">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🌸</div>
+          <div><div class="rc-name">Sorvete Torta de Maracujá <span class="rc-badge badge-gelato">Gelato</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Leite Condensado <span class="ing-qty">380g</span></li>
+          <li>Leite Integral <span class="ing-qty">200g</span></li>
+          <li>Creme de Leite UHT 17% <span class="ing-qty">250g</span></li>
+          <li>Suco de Maracujá <span class="ing-qty">160g</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="gelato">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🫙</div>
+          <div><div class="rc-name">Sorvete de Nutella <span class="rc-badge badge-gelato">Gelato</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Nutella <span class="ing-qty">350g</span></li>
+          <li>Leite Integral <span class="ing-qty">500g</span></li>
+          <li>Creme de Leite UHT <span class="ing-qty">100g</span></li>
+        </ul>
+        <div class="note-box">A Nutella é rica em açúcar e gordura, dispensando o leite condensado. Bata tudo no liquidificador até incorporar completamente.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="gelato">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🥛</div>
+          <div><div class="rc-name">Gelato "Fior di Latte" <span class="rc-badge badge-gelato">Gelato</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Leite Condensado <span class="ing-qty">350g</span></li>
+          <li>Creme de Leite UHT 17% (Piracanjuba) <span class="ing-qty">300g</span></li>
+          <li>Leite Integral <span class="ing-qty">300g</span></li>
+        </ul>
+        <div class="note-box">"Flor de leite" — gelato clássico italiano de sabor puro de leite, sem adições extras. Destaca a cremosidade e simplicidade do leite fresco.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="gelato">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🍮</div>
+          <div><div class="rc-name">Sorvete Doce de Leite <span class="rc-badge badge-gelato">Gelato</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Doce de Leite Rocca <span class="ing-qty">350g</span></li>
+          <li>Creme de Leite UHT 17% (Piracanjuba) <span class="ing-qty">300g</span></li>
+          <li>Leite Integral <span class="ing-qty">300g</span></li>
+        </ul>
+        <div class="tip-box">Pode usar outras marcas de doce de leite, ou fazer doce de leite com a lata de leite condensado. A marca Rocca é recomendada pela consistência.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="gelato">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🧀</div>
+          <div><div class="rc-name">Sorvete de Cheesecake <span class="rc-badge badge-gelato">Gelato</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Leite Condensado <span class="ing-qty">350g</span></li>
+          <li>Cream Cheese <span class="ing-qty">210g</span></li>
+          <li>Leite Integral <span class="ing-qty">400g</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="gelato">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">☕</div>
+          <div><div class="rc-name">Sorvete Café Branco <span class="rc-badge badge-gelato">Gelato</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Leite Condensado <span class="ing-qty">350g</span></li>
+          <li>Creme de Leite UHT 17% (Piracanjuba) <span class="ing-qty">300g</span></li>
+          <li>Leite Integral <span class="ing-qty">300g</span></li>
+          <li>Grão de Café <span class="ing-qty">60g</span></li>
+        </ul>
+        <div class="tip-box">Faça infusão a frio por 24h: coloque os grãos de café no leite e deixe na geladeira. Coe antes de bater. O método extrai apenas as notas perfumadas do café, sem nenhuma nota amarga.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="gelato">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🌿</div>
+          <div><div class="rc-name">Sorvete de Baunilha <span class="rc-badge badge-gelato">Gelato</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Leite Condensado <span class="ing-qty">350g</span></li>
+          <li>Creme de Leite UHT 17% <span class="ing-qty">350g</span></li>
+          <li>Leite Integral <span class="ing-qty">300g</span></li>
+          <li>Pasta de Baunilha <span class="ing-qty">5g a 10g</span></li>
+        </ul>
+        <div class="tip-box">Use pasta de baunilha (ex: Vanilla Brasil) em vez de essência — ela contém sementes reais da fava, com sabor profundo e autêntico. Apenas 5g por kg de calda já faz toda a diferença.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="gelato">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🥥</div>
+          <div><div class="rc-name">Sorvete de Coco <span class="rc-badge badge-gelato">Gelato</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Leite Condensado <span class="ing-qty">350g</span></li>
+          <li>Leite de Coco Sococo <span class="ing-qty">300g</span></li>
+          <li>Leite Integral <span class="ing-qty">300g</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="gelato">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🍫</div>
+          <div><div class="rc-name">Sorvete de Chocolate (versátil) <span class="rc-badge badge-gelato">Gelato</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <p class="recipe-note" style="margin-bottom:.8rem">Esse método usa brigadeiro como base. Cozinhe em panela até ponto de brigadeiro mole, desligue o fogo, depois bata com o restante dos ingredientes.</p>
+        <div class="ingredients-label">Para o brigadeiro</div>
+        <ul class="ingredients-list">
+          <li>Leite Condensado <span class="ing-qty">380g</span></li>
+          <li>Cacau em Pó 100% <span class="ing-qty">50g</span></li>
+          <li>Creme de Leite 17% (metade) <span class="ing-qty">100g</span></li>
+        </ul>
+        <div class="ingredients-label" style="margin-top:.6rem">Para o gelato</div>
+        <ul class="ingredients-list">
+          <li>Brigadeiro produzido</li>
+          <li>Leite Integral <span class="ing-qty">400g</span></li>
+          <li>Creme de Leite 17% (restante) <span class="ing-qty">100g</span></li>
+        </ul>
+        <div class="tip-box">
+          <strong>Variações de intensidade:</strong><br>
+          30g de cacau → Chocolate ao leite<br>
+          50g de cacau → Chocolate meio amargo<br>
+          70g de cacau → Chocolate amargo<br>
+          <br>Use cacau de alta qualidade (Sicao Vermelho ou Cacao Barry) para o melhor resultado.
+        </div>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="gelato">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">💚</div>
+          <div><div class="rc-name">Sorvete de Pistache <span class="rc-badge badge-gelato">Gelato</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Leite Condensado <span class="ing-qty">350g</span></li>
+          <li>Leite Integral <span class="ing-qty">450g</span></li>
+          <li>Creme de Leite 17% <span class="ing-qty">100g</span></li>
+          <li>Pasta de Pistache 100% <span class="ing-qty">90g</span></li>
+        </ul>
+        <div class="warn-box">Use pasta PURA de pistache (ingrediente: apenas pistache). Creme de pistache é diferente — tem açúcar, óleo e outros aditivos que alteram completamente a receita.</div>
+        <div class="note-box">A pasta de pistache pura é rica em gorduras boas, substituindo parte do creme de leite da formulação. Por isso a receita leva menos creme de leite que as outras.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="gelato">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🌰</div>
+          <div><div class="rc-name">Sorvete Nocciola (Avelã) <span class="rc-badge badge-gelato">Gelato</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Leite Condensado <span class="ing-qty">350g</span></li>
+          <li>Leite Integral <span class="ing-qty">450g</span></li>
+          <li>Creme de Leite 17% <span class="ing-qty">100g</span></li>
+          <li>Pasta de Avelã 100% <span class="ing-qty">100g</span></li>
+        </ul>
+        <div class="note-box">Use pasta PURA de avelã (100% avelã torrada, sem açúcar). Nutella contém apenas ~13% de avelã — o gelato autêntico de avelã é simplesmente fenomenal.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="gelato">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🥜</div>
+          <div><div class="rc-name">Sorvete de Amendoim <span class="rc-badge badge-gelato">Gelato</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Leite Condensado <span class="ing-qty">350g</span></li>
+          <li>Leite Integral <span class="ing-qty">420g</span></li>
+          <li>Creme de Leite <span class="ing-qty">120g</span></li>
+          <li>Pasta de Amendoim <span class="ing-qty">95g</span></li>
+        </ul>
+        <div class="tip-box">Oleaginosas (pistache, avelã, amendoim) são naturalmente ricas em gorduras boas e proteínas vegetais, funcionando como substituto do creme de leite em termos de estrutura.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="gelato">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🫙</div>
+          <div><div class="rc-name">Sorvete de Iogurte Grego <span class="rc-badge badge-gelato">Gelato</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Iogurte Grego sem açúcar <span class="ing-qty">550g</span></li>
+          <li>Creme de Leite UHT 17% <span class="ing-qty">200g</span></li>
+          <li>Leite Condensado <span class="ing-qty">200g</span></li>
+          <li>Suco de Limão <span class="ing-qty">30g</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ── SORBET RECIPES ── -->
+
+    <div class="recipe-card" data-type="sorbet">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🍋</div>
+          <div><div class="rc-name">Sorbet de Limão-Taiti <span class="rc-badge badge-sorbet">Sorbet</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="note-box" style="border-color:var(--ice); background:var(--ice-bg); color:#1a4a5e">Base: Xarope Simples (200g açúcar + 220g água, ferver e esfriar). Opcional: 1 colher de café de goma guar para melhor textura.</div>
+        <div class="ingredients-label" style="margin-top:.8rem">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Xarope Simples <span class="ing-qty">400g</span></li>
+          <li>Água <span class="ing-qty">80g</span></li>
+          <li>Suco de Limão-Taiti <span class="ing-qty">100g</span></li>
+        </ul>
+        <div class="tip-box">Adicionar raspas do limão à calda intensifica o sabor e traz mais frescor ao resultado final.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="sorbet">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🍋</div>
+          <div><div class="rc-name">Sorbet de Limão-Siciliano <span class="rc-badge badge-sorbet">Sorbet</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Xarope Simples <span class="ing-qty">400g</span></li>
+          <li>Água <span class="ing-qty">100g</span></li>
+          <li>Suco de Limão-Siciliano <span class="ing-qty">150g</span></li>
+        </ul>
+        <div class="tip-box">As raspas do limão siciliano podem ser adicionadas para reforçar o perfume e o sabor cítrico.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="sorbet">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🍓</div>
+          <div><div class="rc-name">Sorbet de Morango <span class="rc-badge badge-sorbet">Sorbet</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Xarope Simples <span class="ing-qty">360g</span></li>
+          <li>Água <span class="ing-qty">100g</span></li>
+          <li>Morango (fresco ou congelado) <span class="ing-qty">350g</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="sorbet">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🫐</div>
+          <div><div class="rc-name">Sorbet de Frutas Vermelhas <span class="rc-badge badge-sorbet">Sorbet</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Xarope Simples <span class="ing-qty">360g</span></li>
+          <li>Água <span class="ing-qty">70g</span></li>
+          <li>Mix de Frutas Vermelhas <span class="ing-qty">380g</span></li>
+        </ul>
+        <div class="tip-box">Você pode usar os pacotes de frutas vermelhas congeladas disponíveis no mercado — eles funcionam muito bem.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="sorbet">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🫐</div>
+          <div><div class="rc-name">Sorbet de Açaí com Banana <span class="rc-badge badge-sorbet">Sorbet</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Xarope Simples <span class="ing-qty">360g</span></li>
+          <li>Polpa de Açaí (10 a 14%) <span class="ing-qty">250g</span></li>
+          <li>Banana <span class="ing-qty">150g</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="sorbet">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🫐</div>
+          <div><div class="rc-name">Sorbet de Açaí com Morango <span class="rc-badge badge-sorbet">Sorbet</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Xarope Simples <span class="ing-qty">360g</span></li>
+          <li>Polpa de Açaí (10 a 14%) <span class="ing-qty">260g</span></li>
+          <li>Morango <span class="ing-qty">120g</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="sorbet">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🥭</div>
+          <div><div class="rc-name">Sorbet de Manga <span class="rc-badge badge-sorbet">Sorbet</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Xarope Simples <span class="ing-qty">360g</span></li>
+          <li>Água <span class="ing-qty">50g</span></li>
+          <li>Manga <span class="ing-qty">350g</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="sorbet">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🥭</div>
+          <div><div class="rc-name">Sorbet de Manga com Maracujá <span class="rc-badge badge-sorbet">Sorbet</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Xarope Simples <span class="ing-qty">360g</span></li>
+          <li>Suco de Maracujá <span class="ing-qty">80g</span></li>
+          <li>Manga <span class="ing-qty">320g</span></li>
+        </ul>
+        <div class="note-box">Para o suco de maracujá fresco: corte os maracujás ao meio, retire a polpa, pulse 2-3 vezes no liquidificador, coe em peneira fina.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="sorbet">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🥑</div>
+          <div><div class="rc-name">Sorbet de Abacate <span class="rc-badge badge-sorbet">Sorbet</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Xarope Simples <span class="ing-qty">380g</span></li>
+          <li>Abacate <span class="ing-qty">350g</span></li>
+          <li>Suco de Limão <span class="ing-qty">35g</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="sorbet">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🍉</div>
+          <div><div class="rc-name">Sorbet de Melancia <span class="rc-badge badge-sorbet">Sorbet</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Suco de Melancia sem semente <span class="ing-qty">680g</span></li>
+          <li>Xarope Simples <span class="ing-qty">300g</span></li>
+          <li>Suco de Limão <span class="ing-qty">20g</span></li>
+          <li>Goma Guar (opcional) <span class="ing-qty">1 colher de café</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ── AMERICANO RECIPES ── -->
+
+    <div class="recipe-card" data-type="americano">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🍓</div>
+          <div><div class="rc-name">Sorvete de Morango American Style <span class="rc-badge badge-americano">Americano</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="note-box">Os sorvetes americanos levam até 3x mais gordura que os italianos. No Brasil, use <strong>nata 45%</strong> no lugar do "heavy cream" americano. Alternativamente, use creme de leite UHT 20–25%.</div>
+        <div class="ingredients-label" style="margin-top:.8rem">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Leite Condensado <span class="ing-qty">300g</span></li>
+          <li>Nata 45% <span class="ing-qty">250g</span></li>
+          <li>Morango <span class="ing-qty">450g</span></li>
+        </ul>
+        <div class="tip-box">Essa base funciona também com: Framboesas, Manga e Banana.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="americano">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🌿</div>
+          <div><div class="rc-name">Sorvete de Baunilha American Style <span class="rc-badge badge-americano">Americano</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Leite Condensado <span class="ing-qty">300g</span></li>
+          <li>Nata 45% <span class="ing-qty">350g</span></li>
+          <li>Leite Integral <span class="ing-qty">350g</span></li>
+        </ul>
+        <div class="tip-box">Adicione pasta de baunilha a gosto para um sabor mais intenso e autêntico.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="americano">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🍫</div>
+          <div><div class="rc-name">Sorvete de Chocolate American Style <span class="rc-badge badge-americano">Americano</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Chocolate 50% <span class="ing-qty">300g</span></li>
+          <li>Nata 45% <span class="ing-qty">150g</span></li>
+          <li>Leite Integral <span class="ing-qty">450g</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="recipe-card" data-type="americano">
+      <div class="rc-header" onclick="toggleCard(this)">
+        <div class="rc-left">
+          <div class="rc-emoji">🍪</div>
+          <div><div class="rc-name">Sorvete de Oreo (Cookies &amp; Cream) <span class="rc-badge badge-americano">Americano</span></div></div>
+        </div>
+        <span class="rc-chevron">▼</span>
+      </div>
+      <div class="rc-body">
+        <div class="ingredients-label">Ingredientes</div>
+        <ul class="ingredients-list">
+          <li>Leite Condensado <span class="ing-qty">280g</span></li>
+          <li>Nata 45% <span class="ing-qty">300g</span></li>
+          <li>Leite Integral <span class="ing-qty">400g</span></li>
+          <li>Oreo <span class="ing-qty">150g</span></li>
+        </ul>
+        <div class="note-box">Bata metade dos Oreos junto com a calda no liquidificador. Leve à produtora. Corte os Oreos restantes em 8 pedaços e adicione no sorvete ainda dentro da máquina.</div>
+      </div>
+    </div>
+
+  </div><!-- /recipes-wrap -->
+</div><!-- /panel-receitas -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     PANEL: TÉCNICAS
+════════════════════════════════════════════════════════ -->
+<div id="panel-tecnicas" class="panel">
+  <div class="techniques-wrap">
+
+    <div class="section-intro">
+      <h2>🔬 Técnicas de Batimento</h2>
+      <p>Existem duas abordagens: <strong>com máquina</strong> (sorveteira) ou <strong>sem máquina</strong>. Para quem não tem sorveteira, o livro apresenta 3 métodos manuais eficientes. O objetivo de todos é o mesmo: quebrar os cristais de gelo e incorporar ar enquanto a calda congela.</p>
+    </div>
+
+    <!-- Com Máquina -->
+    <div class="technique-card">
+      <div class="technique-header">
+        <div class="method-num">Método Principal</div>
+        <h3>Com Sorveteira</h3>
+        <div class="subtitle">O método mais fácil e de melhor resultado</div>
+      </div>
+      <div class="technique-body">
+        <div class="need-label">Como funciona</div>
+        <p style="font-size:.9rem; color:var(--muted); line-height:1.6; margin-bottom:.8rem">A sorveteira resfria rapidamente a calda enquanto a agita continuamente, incorporando ar e impedindo a formação de cristais grandes. O resultado é um sorvete aerado, cremoso e com textura profissional.</p>
+        <div class="need-label">Dicas essenciais</div>
+        <div class="tip-grid">
+          <div class="tip-item"><strong>Resfrie a calda antes</strong>Deixe no freezer por 30 min ou até atingir 0°C. Melhora a textura e reduz cristais.</div>
+          <div class="tip-item"><strong>Finalize no freezer</strong>15 a 30 minutos após a máquina. Dá mais firmeza para servir.</div>
+          <div class="tip-item"><strong>Com compressor</strong>Pré-resfrie a máquina 10 min antes. Se travar, raspe as laterais com espátula.</div>
+          <div class="tip-item"><strong>Sem compressor</strong>Mantenha a bacia no freezer por ≥24h. Freezer na temperatura máxima.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Método 1 -->
+    <div class="technique-card">
+      <div class="technique-header">
+        <div class="method-num">1º Método Sem Máquina</div>
+        <h3>Batedeira de Mão</h3>
+        <div class="subtitle">O método favorito do Lulo — menos trabalho, ótimo resultado</div>
+      </div>
+      <div class="technique-body">
+        <div class="need-label">O que você vai precisar</div>
+        <ul class="need-list">
+          <li>1 receita de base de sorvete já batida no liquidificador e bem gelada</li>
+          <li>1 batedeira de mão</li>
+          <li>1 recipiente fundo de inox ou pote de 2L de sorvete</li>
+          <li>Freezer e espátula</li>
+        </ul>
+        <div class="need-label">Passo a passo</div>
+        <ol class="steps-list">
+          <li class="step-item"><span class="step-num">1</span><span><strong>Prepare a calda:</strong> Faça a base normalmente no liquidificador. Despeje no recipiente de inox e leve ao freezer por pelo menos 2 horas (sem bater). A calda precisa estar congelada até a metade do centro.</span></li>
+          <li class="step-item"><span class="step-num">2</span><span><strong>Primeira batida:</strong> Retire do freezer, raspe as laterais com colher e bata com a batedeira por 2 a 3 minutos em velocidade alta. Isso quebra os cristais e incorpora ar.</span></li>
+          <li class="step-item"><span class="step-num">3</span><span><strong>Repetição:</strong> Leve ao freezer por mais 1 hora. Depois, bata novamente por 2 a 3 minutos. Normalmente 2 ciclos são suficientes, mas pode ser necessário um terceiro.</span></li>
+          <li class="step-item"><span class="step-num">4</span><span><strong>Congelamento final:</strong> Transfira para um pote com tampa. Consuma após 30 minutos da última batida (mais cremoso) ou congele por mais 2 a 6 horas para textura mais firme.</span></li>
+        </ol>
+        <div class="tip-grid">
+          <div class="tip-item"><strong>Meta técnica</strong>Cristais de gelo entre 20 e 50 micrômetros — invisíveis e imperceptíveis na boca.</div>
+          <div class="tip-item"><strong>Quanto mais ciclos, melhor</strong>Cristais menores = mais cremosidade. Cada batida ajuda a quebrá-los.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Método 2 -->
+    <div class="technique-card">
+      <div class="technique-header">
+        <div class="method-num">2º Método Sem Máquina</div>
+        <h3>Banho-Maria Invertido</h3>
+        <div class="subtitle">Resultado mais próximo da sorveteira. Pronto em 15–25 minutos!</div>
+      </div>
+      <div class="technique-body">
+        <div class="need-label">O que você vai precisar</div>
+        <ul class="need-list">
+          <li>Tigela grande (preferencialmente de inox)</li>
+          <li>Tigela menor que se encaixe dentro da maior</li>
+          <li>1 kg de gelo triturado (ou gelo salgado caseiro)</li>
+          <li>300g de sal grosso</li>
+          <li>Fouet (batedor de arame) ou colher de pau</li>
+          <li>A base do sorvete já resfriada</li>
+        </ul>
+        <div class="need-label">Passo a passo</div>
+        <ol class="steps-list">
+          <li class="step-item"><span class="step-num">1</span><span><strong>Monte o banho-maria invertido:</strong> Misture gelo e sal na tigela grande. O sal cria um ambiente de -18°C a -21°C.</span></li>
+          <li class="step-item"><span class="step-num">2</span><span><strong>Posicione a tigela menor</strong> com o fundo em contato direto com o gelo salgado.</span></li>
+          <li class="step-item"><span class="step-num">3</span><span><strong>Adicione a base</strong> do sorvete (já resfriada) na tigela menor.</span></li>
+          <li class="step-item"><span class="step-num">4</span><span><strong>Bata continuamente</strong> por 15 a 20 minutos. Isso incorpora ar e impede cristais grandes.</span></li>
+          <li class="step-item"><span class="step-num">5</span><span><strong>Freezer opcional:</strong> Coloque a tigela no freezer por 30 min e bata novamente por 10 min, se necessário.</span></li>
+          <li class="step-item"><span class="step-num">6</span><span><strong>Finalização:</strong> Transfira para pote e congele por ≥3 horas para textura mais firme, ou sirva imediatamente.</span></li>
+        </ol>
+        <div class="tip-box">
+          <strong>Gelo Infinito (Dica Especial):</strong> Dissolva 250g de sal em 1L de água e congele em pote fechado. Esse "gelo salgado" atinge -21°C e pode ser guardado e reutilizado infinitas vezes — prático e econômico.
+        </div>
+        <div class="tip-item" style="margin-top:.6rem"><strong>Cubra com filme plástico</strong>Encostado diretamente na superfície do sorvete, evita cristais na superfície durante o armazenamento.</div>
+      </div>
+    </div>
+
+    <!-- Método 3 -->
+    <div class="technique-card">
+      <div class="technique-header">
+        <div class="method-num">3º Método Sem Máquina</div>
+        <h3>Liquidificador ou Processador</h3>
+        <div class="subtitle">Simula a Pacojet e a Ninja Creami com o que você já tem em casa</div>
+      </div>
+      <div class="technique-body">
+        <div class="need-label">O que você vai precisar</div>
+        <ul class="need-list">
+          <li>1 receita de calda de sorvete pronta (líquida e homogênea)</li>
+          <li>Formas de gelo ou moldes de silicone</li>
+          <li>Liquidificador potente ou processador de alimentos</li>
+          <li>Espátula e colher</li>
+        </ul>
+        <div class="need-label">Passo a passo</div>
+        <ol class="steps-list">
+          <li class="step-item"><span class="step-num">1</span><span><strong>Prepare a calda:</strong> Misture os ingredientes até ficar completamente lisa e homogênea.</span></li>
+          <li class="step-item"><span class="step-num">2</span><span><strong>Congele em cubos:</strong> Despeje nas formas de gelo (menores = mais fácil de bater depois). Leve ao freezer por 4 a 8 horas até firme.</span></li>
+          <li class="step-item"><span class="step-num">3</span><span><strong>Bata os cubos:</strong> Retire do freezer, deixe 2–3 minutos fora para amolecer levemente as bordas. Bata no liquidificador potente até obter mistura lisa e cremosa (2 a 5 minutos). Seja rápido!</span></li>
+          <li class="step-item"><span class="step-num">4</span><span><strong>Congele novamente:</strong> Despeje imediatamente em pote e leve ao freezer por mais 1 a 2 horas para consistência mais firme.</span></li>
+        </ol>
+        <div class="warn-box">O processo de bater no liquidificador precisa ser rápido — se demorar muito, o sorvete começa a derreter e perderá a textura cremosa obtida.</div>
+        <div class="note-box">Esse método imita o funcionamento da Pacojet, que utiliza lâminas de alta rotação para raspar microcamadas da base congelada, resultando em textura ultrafina.</div>
+      </div>
+    </div>
+
+  </div><!-- /techniques-wrap -->
+</div><!-- /panel-tecnicas -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     PANEL: EQUIPAMENTOS
+════════════════════════════════════════════════════════ -->
+<div id="panel-equipamentos" class="panel">
+  <div class="equipment-wrap">
+
+    <div class="equip-intro">
+      <p>Muitos utensílios para fazer sorvete são itens que você já tem na cozinha. Certifique-se de reunir tudo antes de começar. <strong>Você não precisa gastar uma fortuna</strong> — as receitas funcionam tanto com sorveteiras quanto sem elas.</p>
+    </div>
+
+    <div class="equip-section-title">🧰 Utensílios Essenciais</div>
+    <div class="equip-grid">
+      <div class="equip-item">
+        <div class="equip-name">🥄 Batedor de Arame (Fouet)</div>
+        <div class="equip-desc">Um batedor médio ou grande de aço inox é necessário para todas as etapas iniciais de produção da base e para preparar a calda do sorbet.</div>
+      </div>
+      <div class="equip-item">
+        <div class="equip-name">⚖️ Balança de Cozinha</div>
+        <div class="equip-desc">Deve ser resistente, estável e suportar mais de 1,8 kg. Recomendada balança digital. Qualquer desnível pode resultar em medidas incorretas.</div>
+      </div>
+      <div class="equip-item">
+        <div class="equip-name">🔀 Mixer / Liquidificador</div>
+        <div class="equip-desc">Usado para incorporar e homogeneizar os ingredientes da base. Um mixer doméstico comum é suficiente. Prefira modelo com haste removível para facilitar a limpeza.</div>
+      </div>
+      <div class="equip-item">
+        <div class="equip-name">🥣 Tigelas</div>
+        <div class="equip-desc">Prefira de vidro ou aço inox, resistentes ao calor. Você precisará de tigelas pequenas para essências, e uma grande para mistura e batimento.</div>
+      </div>
+      <div class="equip-item">
+        <div class="equip-name">🫙 Recipientes de Armazenamento</div>
+        <div class="equip-desc">De vidro ou plástico com tampas bem vedadas. Mínimo 950ml. A vedação é essencial para evitar queima pelo frio (freezer burn) e cristais de gelo.</div>
+      </div>
+      <div class="equip-item">
+        <div class="equip-name">🎞️ Filme Plástico</div>
+        <div class="equip-desc">Usado para cobrir a base enquanto resfria (evita película) e para cobrir o topo do sorvete diretamente no recipiente, impedindo cristais na superfície.</div>
+      </div>
+    </div>
+
+    <div class="equip-section-title">🏭 Máquinas para Sorvete</div>
+    <div class="machine-table-wrap">
+      <table class="machine-table">
+        <thead>
+          <tr>
+            <th>Máquina</th>
+            <th>Tipo</th>
+            <th>Capacidade</th>
+            <th>Preço (R$)</th>
+            <th>Destaque</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Cuisinart ICE-21</strong> <span class="rec-badge">★ Recomendada</span></td>
+            <td>Caneco pré-congelado</td>
+            <td class="highlight">1L</td>
+            <td>~900</td>
+            <td>Melhor custo-benefício</td>
+          </tr>
+          <tr>
+            <td><strong>Sorveteira Ariete</strong></td>
+            <td>Caneco pré-congelado</td>
+            <td>&lt;1L</td>
+            <td>~700</td>
+            <td>Boa opção econômica</td>
+          </tr>
+          <tr>
+            <td><strong>KitchenAid (Tigela)</strong></td>
+            <td>Caneco pré-congelado</td>
+            <td>900ml</td>
+            <td>~900</td>
+            <td>Para quem já tem a batedeira</td>
+          </tr>
+          <tr>
+            <td><strong>Tramontina by Breville</strong></td>
+            <td>Compressor embutido</td>
+            <td class="highlight">1L</td>
+            <td>~4.500</td>
+            <td>Alta performance profissional</td>
+          </tr>
+          <tr>
+            <td><strong>EOS ESO02</strong></td>
+            <td>Compressor embutido</td>
+            <td>500–600g</td>
+            <td>900–1.200</td>
+            <td>Ótimo para empreender</td>
+          </tr>
+          <tr>
+            <td><strong>EOS ESO03</strong> <span class="rec-badge">★ Favorita dos alunos</span></td>
+            <td>Compressor embutido</td>
+            <td>750–1.000g</td>
+            <td>1.800–2.400</td>
+            <td>Equilíbrio entre ar e cremosidade (15–25% overrun)</td>
+          </tr>
+          <tr>
+            <td><strong>Ninja Creami</strong></td>
+            <td>Processador congelado</td>
+            <td>1 pote/vez</td>
+            <td>2.500–3.000</td>
+            <td>Textura incrível, mas exige planejamento antecipado</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note-box">
+      <strong>Caneco pré-congelado:</strong> Mantenha a bacia no freezer por ≥24h antes de usar. Dica: mantenha sempre congelada para poder fazer sorvete quando der vontade.<br><br>
+      <strong>Com compressor:</strong> Pré-resfrie a máquina 10 minutos antes de adicionar a calda. Permitem várias receitas no mesmo dia — sem esperar o caneco congelar.
+    </div>
+
+  </div><!-- /equipment-wrap -->
+</div><!-- /panel-equipamentos -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     PANEL: CIÊNCIA
+════════════════════════════════════════════════════════ -->
+<div id="panel-ciencia" class="panel">
+  <div class="science-wrap">
+
+    <!-- Ingredientes Fundamentais -->
+    <div class="sci-section">
+      <div class="sci-section-title">🔬 Função de Cada Ingrediente</div>
+      <div class="ingredient-grid">
+        <div class="ingredient-card">
+          <div class="ing-icon">🧈</div>
+          <div class="ing-name">Gordura</div>
+          <div class="ing-role">Cremosidade</div>
+          <p>Principal responsável pela textura aveludada. Envolve as partículas de gelo, reduzindo aspereza. Carrega compostos aromáticos, intensificando e prolongando os sabores. Fontes: creme de leite, leite integral, castanhas, coco.</p>
+        </div>
+        <div class="ingredient-card">
+          <div class="ing-icon">🍬</div>
+          <div class="ing-name">Açúcar</div>
+          <div class="ing-role">Textura &amp; Dulçor</div>
+          <p>Vai muito além de adoçar. <strong>Baixa o ponto de congelamento</strong> da mistura, impedindo que o sorvete vire um bloco de gelo. Influencia viscosidade e retenção de umidade. O tipo (refinado, demerara, glicose) afeta a cremosidade final.</p>
+        </div>
+        <div class="ingredient-card water">
+          <div class="ing-icon">💧</div>
+          <div class="ing-name">Água</div>
+          <div class="ing-role">Base da Mistura</div>
+          <p>Presente diretamente (sorbets) ou por meio do leite, frutas e outros líquidos. Quando congelada, forma cristais de gelo — o desafio é mantê-los pequenos. Água demais = sorvete duro ou cristalizado.</p>
+        </div>
+        <div class="ingredient-card protein">
+          <div class="ing-icon">🥚</div>
+          <div class="ing-name">Proteínas</div>
+          <div class="ing-role">Estabilização</div>
+          <p>Presentes no leite, leite condensado, creme e ovos. <strong>Emulsionam e estabilizam</strong> a mistura. Contribuem para a incorporação e retenção de ar (overrun), melhorando a estrutura e dando mais firmeza ao produto final.</p>
+        </div>
+      </div>
+
+      <div class="invisible-ing-grid" style="margin-top:1rem">
+        <div class="inv-card">
+          <h4>❄️ Cristais de Gelo</h4>
+          <p>Para um sorvete cremoso, os cristais formados precisam ser <strong>muito pequenos</strong> (20–50 micrômetros). Cristais grandes resultam em textura áspera e sensação de "gelo raspado". São controlados pelo processo de batimento durante o congelamento.</p>
+        </div>
+        <div class="inv-card">
+          <h4>💨 Ar (Overrun)</h4>
+          <p>Ingrediente invisível que dá leveza e cremosidade. Incorporado durante o congelamento agitado. O overrun ideal para sorvetes artesanais fica entre 15% e 25%. Excesso de ar (como na indústria, até 110%) prejudica a qualidade.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- História -->
+    <div class="sci-section">
+      <div class="sci-section-title">📜 História do Sorvete</div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">3000 a.C.</div>
+          <div class="tl-text">Chineses criam uma sobremesa congelada — gelo aromatizado com frutas ou leite. Técnica passa para comerciantes árabes e depois para a Europa.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">2500 a.C.</div>
+          <div class="tl-text">Hieróglifos egípcios mostram neve sendo misturada a suco de frutas.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">Século I d.C.</div>
+          <div class="tl-text">O imperador romano Nero mandava buscar neve nas montanhas para misturar com mel e vinho — uma forma primitiva de raspadinha.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">Século IV d.C.</div>
+          <div class="tl-text">Textos indianos descrevem como sal misturado ao gelo pode baixar ainda mais a temperatura — técnica essencial para congelar líquidos (efeito endotérmico).</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">1533</div>
+          <div class="tl-text">Catarina de Médici leva receitas italianas de sorvetes e gelados para a França ao se casar com Henrique II.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">1600s–1700s</div>
+          <div class="tl-text">Sorvetes aparecem na Sicília, Paris e Londres. Os primeiros livros com receitas e técnicas começam a surgir.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">1926</div>
+          <div class="tl-text">H.H. Miller inventa a primeira produtora de sorvete horizontal, revolucionando a produção em escala e servindo de base para as máquinas modernas.</div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">1990s–2000s</div>
+          <div class="tl-text">Chegam inovações como o Pacojet e máquinas de sorvete de chapa, modernizando o preparo artesanal de sorbets e sorvetes.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estabilizantes -->
+    <div class="sci-section">
+      <div class="sci-section-title">🧫 Estabilizantes em Sorvetes</div>
+      <p style="font-size:.9rem; color:var(--muted); line-height:1.6; margin-bottom:1rem">Estabilizantes são ingredientes naturais cruciais para garantir textura macia e uniformidade. Interagem com a água, aumentando a viscosidade da mistura mesmo em baixas concentrações.</p>
+
+      <div class="need-label">Benefícios</div>
+      <div class="benefits-grid">
+        <div class="benefit-item">
+          <strong>💨 Incorporação de Ar</strong>
+          <p>Formam bolhas de ar finas e estáveis, essenciais para a leveza do sorvete.</p>
+        </div>
+        <div class="benefit-item">
+          <strong>❄️ Controle de Cristalização</strong>
+          <p>Absorvem e gelificam a água, impedindo a formação de cristais grandes que prejudicam a textura.</p>
+        </div>
+        <div class="benefit-item">
+          <strong>⏱️ Vida Útil</strong>
+          <p>Mantêm a qualidade por mais tempo no freezer, resistindo ao "choque térmico".</p>
+        </div>
+      </div>
+
+      <div class="need-label" style="margin-top:1.2rem">Gomas (2–3g por kg de calda)</div>
+      <div class="stabilizer-grid">
+        <div class="stab-card">
+          <div class="stab-name">Goma Guar</div>
+          <div class="stab-code">INS 412</div>
+          <div class="stab-desc">Polissacarídeo extraído das sementes da planta guar. Espessante e estabilizante — aumenta viscosidade, controla cristais de gelo e melhora a cremosidade.</div>
+        </div>
+        <div class="stab-card">
+          <div class="stab-name">Goma Xantana</div>
+          <div class="stab-code">INS 415</div>
+          <div class="stab-desc">Produzida por fermentação bacteriana. Alto poder de espessamento. Ajuda a evitar sinérese (separação de água) durante o armazenamento.</div>
+        </div>
+        <div class="stab-card">
+          <div class="stab-name">Pectina</div>
+          <div class="stab-code">INS 440</div>
+          <div class="stab-desc">Encontrada em frutas como maçã e cítricos. Propriedades gelificantes. Especialmente útil em sorvetes com baixo teor de gordura.</div>
+        </div>
+        <div class="stab-card">
+          <div class="stab-name">Gelatina</div>
+          <div class="stab-code">—</div>
+          <div class="stab-desc">Proteína de origem animal com capacidade gelificante. Contribui para textura e firmeza. A gelatina hidrolisada é mais solúvel a frio.</div>
+        </div>
+        <div class="stab-card">
+          <div class="stab-name">Liga Neutra</div>
+          <div class="stab-code">—</div>
+          <div class="stab-desc">Mistura de diferentes estabilizantes e emulsificantes (gomas guar + xantana + amido). Melhora estabilidade geral, corpo e durabilidade do sorvete.</div>
+        </div>
+      </div>
+
+      <div class="note-box" style="margin-top:1.2rem">
+        <strong>Dica prática:</strong> Basta adicionar a goma na hora de bater a calda no liquidificador para garantir que ela se disperse bem. Pequenas produções usam 0,3% a 0,5% de estabilizante — grandes fabricantes chegam a 3%, mas isso prejudica a qualidade do produto final.<br><br>
+        <strong>Estabilizantes naturais:</strong> As proteínas do leite condensado também atuam como emulsificantes e estabilizantes naturais — por isso ele é usado nas receitas além do seu sabor ou açúcar.
+      </div>
+    </div>
+
+  </div><!-- /science-wrap -->
+</div><!-- /panel-ciencia -->
+
+
+<script>
+  function showTab(name, btn) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    btn.classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function toggleCard(header) {
+    const card = header.closest('.recipe-card');
+    card.classList.toggle('open');
+  }
+
+  function filterRecipes(type, btn) {
+    document.querySelectorAll('#recipe-filters .filter-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.recipe-card').forEach(card => {
+      if (type === 'all' || card.dataset.type === type) {
+        card.classList.remove('hidden');
+      } else {
+        card.classList.add('hidden');
+        card.classList.remove('open');
+      }
+    });
+  }
+</script>
+</body>
+</html>
