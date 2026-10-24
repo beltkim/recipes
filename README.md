@@ -5,45 +5,30 @@ Static site served via GitHub Pages.
 ## Structure
 
 ```
-gh-pages/
-├── index.html                  ← main cookbook page (password: receitas2024)
-├── .nojekyll                   ← disables Jekyll so filenames with _ work
-├── README.md
+docs/                           ← served by GitHub Pages (main branch, /docs)
+├── index.html                  ← weekly meal planner
+├── cookbook.html               ← family cookbook (login required)
+├── icecreams.html              ← "Sorvetes com 4 Ingredientes" (login required)
+├── CNAME                       ← domusrecipes.com.br
 └── assets/
-    └── original_recipes/       ← recipe photos (123 images, ~13 MB)
+    └── original_recipes/       ← recipe photos
 ```
 
 ## Deploy
 
-```bash
-# First time
-git init
-git checkout -b gh-pages
-git add .
-git commit -m "deploy cookbook"
-git remote add origin https://github.com/YOUR_USER/YOUR_REPO.git
-git push -u origin gh-pages
+No build step — push to `main` and GitHub Pages publishes the `docs/` folder:
 
-# Updates
+```bash
 git add .
 git commit -m "update cookbook"
-git push
+git push origin main
 ```
 
-Then in GitHub → repo Settings → Pages → Branch: **gh-pages** / folder: **/ (root)**.
+## Login
 
-Your site will be live at `https://YOUR_USER.github.io/YOUR_REPO/`
-
-## Changing the password
-
-Run this in any browser console to get the hash for your new password:
-
-```js
-crypto.subtle.digest('SHA-256', new TextEncoder().encode('yourpassword'))
-  .then(b => console.log(Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')))
-```
-
-Then replace `PASS_HASH` near the bottom of `index.html` with the output.
+The cookbook and ice cream pages check credentials against an external auth
+service (`AUTH_URL` in each page's script). Users and passwords are managed
+there, not in this repo.
 
 ## Receitas (226)
 

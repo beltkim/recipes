@@ -298,9 +298,58 @@
     .machine-table th, .machine-table td { padding:.45rem .6rem; }
     .tab-btn { padding:.75rem .9rem; font-size:.8rem; }
   }
+  /* ── LOGIN OVERLAY ── */
+  #login-overlay {
+    position:fixed; inset:0; z-index:9999;
+    background: linear-gradient(135deg, #3d1a06 0%, #7b4a1e 60%, #a0622a 100%);
+    display:flex; align-items:center; justify-content:center;
+    padding:1.5rem;
+  }
+  #login-overlay.hidden { display:none; }
+  .login-box {
+    background:#fffdf8; border-radius:16px; padding:2.5rem 2rem 2rem;
+    max-width:360px; width:100%; text-align:center;
+    box-shadow:0 12px 48px rgba(0,0,0,.4);
+  }
+  .login-box .lock { font-size:2.8rem; margin-bottom:.6rem; }
+  .login-box h2 { color:var(--brown); font-size:1.4rem; margin-bottom:.3rem; }
+  .login-box p  { color:var(--muted); font-size:.88rem; margin-bottom:1.4rem; }
+  .login-box input {
+    width:100%; padding:.75rem 1rem; border:1.5px solid var(--border);
+    border-radius:8px; font-size:1rem; color:var(--text);
+    background:#fdf6ec; outline:none; margin-bottom:.3rem;
+    transition:border-color .2s;
+  }
+  .login-box input:focus { border-color:var(--accent); }
+  .login-error { color:#c0392b; font-size:.82rem; min-height:1.1rem; margin-bottom:.7rem; }
+  .login-box button {
+    width:100%; padding:.8rem; background:var(--brown); color:#fff;
+    border:none; border-radius:8px; font-size:1rem; cursor:pointer;
+    transition:background .2s; font-family:inherit;
+  }
+  .login-box button:hover { background:var(--accent); }
+  .login-box button:active { transform:scale(.98); }
+
 </style>
 </head>
 <body>
+
+<!-- ── LOGIN OVERLAY ── -->
+<div id="login-overlay">
+  <div class="login-box">
+    <div class="lock">🔒</div>
+    <h2>Sorvetes com 4 Ingredientes</h2>
+    <p>Digite suas credenciais para acessar o livro da família</p>
+    <input type="text" id="user-input" placeholder="Usuário" autocomplete="username"
+           onkeydown="if(event.key==='Enter') document.getElementById('pw-input').focus()"
+           style="margin-bottom:.6rem">
+    <input type="password" id="pw-input" placeholder="Senha" autocomplete="current-password"
+           onkeydown="if(event.key==='Enter') tryLogin()">
+    <div class="login-error" id="pw-error"></div>
+    <button id="login-btn" onclick="tryLogin()">Entrar</button>
+  </div>
+</div>
+
 
 <header>
   <a href="cookbook.html" class="back-btn">← Receituário</a>
@@ -1531,6 +1580,58 @@
         card.classList.remove('open');
       }
     });
+  }
+
+  // ── LOGIN ──────────────────────────────────────────────────────────────────
+  const AUTH_URL = 'https://api-auth-y887.onrender.com/ghpages/login';
+
+  async function tryLogin() {
+    const username = document.getElementById('user-input').value.trim();
+    const password = document.getElementById('pw-input').value;
+    const errEl    = document.getElementById('pw-error');
+    const btn      = document.getElementById('login-btn');
+
+    if (!username) {
+      errEl.textContent = '❌ Preencha o usuário.';
+      document.getElementById('user-input').focus();
+      return;
+    }
+    if (!password) {
+      errEl.textContent = '❌ Preencha a senha.';
+      document.getElementById('pw-input').focus();
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Entrando…';
+    errEl.textContent = '';
+
+    try {
+      const credentials = btoa(username + ':' + password);
+      const res = await fetch(AUTH_URL, {
+        method: 'POST',
+        headers: { 'Authorization': 'Basic ' + credentials }
+      });
+      if (res.ok) {
+        sessionStorage.setItem('auth', '1');
+        document.getElementById('login-overlay').classList.add('hidden');
+      } else {
+        errEl.textContent = '❌ Usuário ou senha incorretos.';
+        document.getElementById('pw-input').value = '';
+        document.getElementById('pw-input').focus();
+      }
+    } catch {
+      errEl.textContent = '⚠️ Erro de conexão. Tente novamente.';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+    }
+  }
+
+  if (sessionStorage.getItem('auth') !== '1') {
+    setTimeout(() => document.getElementById('user-input').focus(), 50);
+  } else {
+    document.getElementById('login-overlay').classList.add('hidden');
   }
 </script>
 </body>
